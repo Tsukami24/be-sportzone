@@ -1,19 +1,28 @@
-import { Controller, Post, Body } from "@nestjs/common";
+import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { JwtAuthGuard } from './guards/jwt-auth.guard'; 
+
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
-    @Post('register')
-    register(@Body() dto: RegisterDto) {
-        return this.authService.registerCustomer(dto);
-    }
+  @Post('register')
+  register(@Body() dto: RegisterDto) {
+    return this.authService.registerCustomer(dto);
+  }
 
-    @Post('login')
-    login(@Body() dto: LoginDto) {
-        return this.authService.login(dto);
-    }
+  @Post('login')
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req) {
+    const token = req.headers.authorization?.split(' ')[1];
+    return this.authService.logout(token);
+  }
 }
