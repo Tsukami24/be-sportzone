@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity/user.entity';
@@ -25,6 +25,15 @@ export class UsersService {
     });
   }
 
+  async findPetugasById(id: string){
+    const petugas = await this.userRepo.findOne({
+      where: { id },
+      relations: ['role']
+    });
+    if(!petugas) throw new NotFoundException('Petugas tidak ditemukan')
+    return petugas;
+  }
+
   async getRoleByName(name: string) {
     return this.roleRepo.findOne({ where: { name } });
   }
@@ -37,4 +46,19 @@ export class UsersService {
     const hashed = await bcrypt.hash(data.password, 10);
     return this.create({ ...data, role_id: rolePetugas.id, password: hashed });
   }
+
+  async updatePetugas (id: string, data: Partial<User>) {
+    const petugas = await this.findPetugasById(id);
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+    Object.assign(petugas, data);
+    return this.userRepo.save(petugas);
+  }
+
+  async deletePetugas(id: string) {
+    const petugas = await this.findPetugasById(id);
+    return this.userRepo.remove(petugas);
+  }
+
 }
