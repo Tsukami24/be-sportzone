@@ -4,7 +4,5 @@ export class CreateKategoriOlahragaDto {
     @IsString()
     nama: string;
 
-    @IsString()
-    @IsOptional()
-    deskripsi?: string;
+    
 }
