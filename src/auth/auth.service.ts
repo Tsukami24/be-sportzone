@@ -35,7 +35,6 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
 
     const valid = await bcrypt.compare(dto.password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid password');
 
     const payload = {
       sub: user.id,
