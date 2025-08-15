@@ -1,3 +1,4 @@
+// src/auth/entities/token.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,

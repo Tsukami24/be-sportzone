@@ -1,24 +1,40 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import { AuthService } from '../auth.service';
-import { ExecutionContext } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly authService: AuthService) {
-    super();
-  }
+export class JwtAuthGuard implements CanActivate {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const can = await super.canActivate(context);
-    if (!can) return false;
-
     const req = context.switchToHttp().getRequest();
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new UnauthorizedException('Token missing');
 
-    if (token && (await this.authService.isTokenBlacklisted(token))) {
-      throw new UnauthorizedException('Token has been revoked');
+    const token = authHeader.split(' ')[1];
+
+    // verifikasi token
+    try {
+      const payload: any = await this.jwtService.verifyAsync(token);
+      req.user = payload; // attach payload ke request
+    } catch {
+      throw new UnauthorizedException('Token invalid');
     }
+
+    // cek blacklist
+    const blacklisted = await this.authService.isTokenBlacklisted(token);
+    if (blacklisted) throw new UnauthorizedException('Token revoked');
+
     return true;
   }
 }

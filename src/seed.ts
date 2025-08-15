@@ -16,7 +16,7 @@ async function seed() {
     const existing = await rolesService.findByName(name);
     if (!existing) {
       await rolesService.create({ name });
-      console.log(`✅ Role "${name}" created!`);
+      console.log(`Role "${name}" created!`);
     }
   }
 
@@ -35,9 +35,9 @@ async function seed() {
       password: hashed,
       role_id: roleAdmin.id,
     });
-    console.log('✅ Admin account created!');
+    console.log('Admin account created!');
   } else {
-    console.log('ℹ️ Admin account already exists.');
+    console.log('Admin account already exists.');
   }
 
   await app.close();
@@ -45,10 +45,10 @@ async function seed() {
 
 seed()
   .then(() => {
-    console.log('🎯 Seeding completed!');
+    console.log('Seeding completed!');
     process.exit(0);
   })
   .catch((err) => {
-    console.error('❌ Seeding failed:', err);
+    console.error('Seeding failed:', err);
     process.exit(1);
   });

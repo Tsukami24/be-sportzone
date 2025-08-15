@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { KategoriOlahragaModule } from './kategori-olahraga/kategori-olahraga.module';
+import { PetugasModule } from './petugas/petugas.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { KategoriOlahragaModule } from './kategori-olahraga/kategori-olahraga.mo
     AuthModule,
     UsersModule,
     RolesModule,
+    PetugasModule,
     KategoriOlahragaModule,
   ],
 })

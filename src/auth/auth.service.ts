@@ -1,13 +1,13 @@
+// src/auth/auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { TokenBlacklist } from './entities/token.entity';
 import { UsersService } from 'src/users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -20,9 +20,7 @@ export class AuthService {
 
   async registerCustomer(dto: RegisterDto) {
     const roleCustomer = await this.userService.getRoleByName('customer');
-    if (!roleCustomer) {
-      throw new error('role customer belum ada');
-    }
+    if (!roleCustomer) throw new Error('Role customer belum ada');
 
     const hashed = await bcrypt.hash(dto.password, 10);
     return this.userService.create({
@@ -34,14 +32,17 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userService.findByEmail(dto.email);
-    if (!user) throw new UnauthorizedException('user not found');
+    if (!user) throw new UnauthorizedException('User not found');
 
-    const password = await bcrypt.compare(dto.password, user.password);
-    if (!password) throw new UnauthorizedException('invalid password');
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) throw new UnauthorizedException('Invalid password');
 
-    const payload = { sub: user.id, role: user.role.name };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role.name,
+    };
     const token = await this.jwtService.signAsync(payload);
-
     return { user, token };
   }
 

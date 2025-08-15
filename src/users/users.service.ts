@@ -13,6 +13,9 @@ export class UsersService {
   ) {}
 
   async create(data: Partial<User>) {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
     const user = this.userRepo.create(data);
     return this.userRepo.save(user);
   }
@@ -25,40 +28,48 @@ export class UsersService {
     });
   }
 
-  async findPetugasById(id: string){
-    const petugas = await this.userRepo.findOne({
-      where: { id },
-      relations: ['role']
-    });
-    if(!petugas) throw new NotFoundException('Petugas tidak ditemukan')
-    return petugas;
-  }
-
   async getRoleByName(name: string) {
     return this.roleRepo.findOne({ where: { name } });
   }
 
-  async createPetugas(data: Partial<User>) {
-    const rolePetugas = await this.getRoleByName('petugas');
-    if (!rolePetugas) {
-      throw new Error('Role petugas belum ada');
-    }
-    const hashed = await bcrypt.hash(data.password, 10);
-    return this.create({ ...data, role_id: rolePetugas.id, password: hashed });
+  // Petugas
+  async findAllPetugas() {
+    return this.userRepo.find({
+      where: { role: { name: 'petugas' } },
+      relations: ['role'],
+      select: ['id', 'username', 'email'],
+    });
   }
 
-  async updatePetugas (id: string, data: Partial<User>) {
-    const petugas = await this.findPetugasById(id);
+  async findOnePetugas(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id, role: { name: 'petugas' } },
+      relations: ['role'],
+      select: ['id', 'username', 'email'],
+    });
+    if (!user) throw new NotFoundException('Petugas not found');
+    return user;
+  }
+
+  async updatePetugas(id: string, data: Partial<User>) {
+    const user = await this.userRepo.findOne({
+      where: { id, role: { name: 'petugas' } },
+    });
+    if (!user) throw new NotFoundException('Petugas not found');
+
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
-    Object.assign(petugas, data);
-    return this.userRepo.save(petugas);
+
+    Object.assign(user, data);
+    return this.userRepo.save(user);
   }
 
-  async deletePetugas(id: string) {
-    const petugas = await this.findPetugasById(id);
-    return this.userRepo.remove(petugas);
+  async removePetugas(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id, role: { name: 'petugas' } },
+    });
+    if (!user) throw new NotFoundException('Petugas not found');
+    return this.userRepo.remove(user);
   }
-
 }
