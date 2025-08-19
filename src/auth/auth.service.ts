@@ -26,8 +26,9 @@ export class AuthService {
     return this.userService.create({
       ...dto,
       password: hashed,
-      role_id: roleCustomer.id,
+      role: roleCustomer,
     });
+
   }
 
   async login(dto: LoginDto) {
@@ -53,5 +54,11 @@ export class AuthService {
   async isTokenBlacklisted(token: string): Promise<boolean> {
     const found = await this.tokenBlacklistRepo.findOne({ where: { token } });
     return !!found;
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new UnauthorizedException('User not found');
+    return user;
   }
 }

@@ -22,6 +22,7 @@ import { PetugasModule } from './petugas/petugas.module';
         synchronize: true, 
       }),
     }),
+    
     AuthModule,
     UsersModule,
     RolesModule,

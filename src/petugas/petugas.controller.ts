@@ -44,6 +44,7 @@ export class PetugasController {
   }
 
   @Delete(':id')
+  @Roles('admin')
   deletePetugas(@Param('id') id: string) {
     return this.petugasService.remove(id);
   }

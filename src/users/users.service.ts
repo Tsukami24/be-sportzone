@@ -32,7 +32,15 @@ export class UsersService {
     return this.roleRepo.findOne({ where: { name } });
   }
 
-  // Petugas
+  async findById(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['role'],
+    });
+    return user;
+  }
+
+  // Petugasa
   async findAllPetugas() {
     return this.userRepo.find({
       where: { role: { name: 'petugas' } },
@@ -61,7 +69,10 @@ export class UsersService {
       data.password = await bcrypt.hash(data.password, 10);
     }
 
-    Object.assign(user, data);
+    if (data.username !== undefined) user.username = data.username;
+    if (data.email !== undefined) user.email = data.email;
+    if (data.password !== undefined) user.password = data.password;
+
     return this.userRepo.save(user);
   }
 

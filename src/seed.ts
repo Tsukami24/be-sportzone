@@ -33,7 +33,7 @@ async function seed() {
       username: 'Admin',
       email: 'admin@example.com',
       password: hashed,
-      role_id: roleAdmin.id,
+      role: roleAdmin,
     });
     console.log('Admin account created!');
   } else {

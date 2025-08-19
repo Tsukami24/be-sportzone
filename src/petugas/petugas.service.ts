@@ -16,7 +16,7 @@ export class PetugasService {
     return this.usersService.create({
       ...dto,
       password: hashed,
-      role_id: role.id,
+      role: role,
     });
   }
 
