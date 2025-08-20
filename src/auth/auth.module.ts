@@ -8,13 +8,14 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenBlacklist } from './entities/token.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { jwtConfig } from '../config/jwt.config';
 @Module({
   imports: [
     forwardRef(() => UsersModule),
     TypeOrmModule.forFeature([TokenBlacklist]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'supersecretkey',
-      signOptions: { expiresIn: '1d' },
+      secret: jwtConfig.secret,
+      signOptions: { expiresIn: jwtConfig.expiresIn },
     }),
   ],
   controllers: [AuthController],

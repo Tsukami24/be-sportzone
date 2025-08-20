@@ -40,6 +40,8 @@ async function seed() {
     console.log('Admin account already exists.');
   }
 
+
+
   await app.close();
 }
 
