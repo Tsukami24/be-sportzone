@@ -1,4 +1,3 @@
-// src/auth/auth.module.ts
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
@@ -8,19 +7,18 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenBlacklist } from './entities/token.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { jwtConfig } from '../config/jwt.config';
+import { GoogleStrategy } from './strategies/google.strategy';
 @Module({
   imports: [
     forwardRef(() => UsersModule),
     TypeOrmModule.forFeature([TokenBlacklist]),
     JwtModule.register({
-      secret: jwtConfig.secret,
-      signOptions: { expiresIn: jwtConfig.expiresIn },
+      secret: process.env.JWT_SECRET || 'supersecretkey',
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard, JwtStrategy],
+  providers: [AuthService, JwtAuthGuard, JwtStrategy, GoogleStrategy],
   exports: [AuthService, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}
-

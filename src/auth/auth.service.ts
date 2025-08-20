@@ -40,7 +40,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role.name,
+      role: user.role!.name,
     };
     const token = await this.jwtService.signAsync(payload);
     return { user, token };
@@ -61,4 +61,26 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     return user;
   }
+
+  async validateGoogleLogin(email: string, username: string) {
+  let user = await this.userService.findByEmail(email);
+
+  if (!user) {
+    // register user baru
+    const roleCustomer = await this.userService.getRoleByName('customer');
+    user = await this.userService.create({
+      username,
+      email,
+      password: '', // kosong karena login pakai Google
+      role: roleCustomer,
+    });
+  }
+
+  // buat token JWT
+  const payload = { sub: user.id, email: user.email, role: user.role!.name };
+  const token = await this.jwtService.signAsync(payload);
+
+  return { user, token };
+}
+
 }

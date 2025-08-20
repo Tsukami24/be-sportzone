@@ -3,18 +3,19 @@ import { Role } from 'src/roles/entities/role.entity/role.entity';
 
 @Entity('users')
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
-    @ManyToOne(() => Role, (role) => role.users)
-    @JoinColumn({name: 'role_id'})
-    role: Role;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+  
+  @ManyToOne(() => Role, (role) => role.users, { nullable: true })
+  @JoinColumn({ name: 'role_id' })
+  role: Role | null;
 
-    @Column( {length: 50} )
-    username: string;
+  @Column({ length: 50 })
+  username: string;
 
-    @Column()
-    email: string;
+  @Column()
+  email: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 }
