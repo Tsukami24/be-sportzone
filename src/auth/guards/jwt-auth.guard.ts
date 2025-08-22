@@ -23,15 +23,13 @@ export class JwtAuthGuard implements CanActivate {
 
     const token = authHeader.split(' ')[1];
 
-    // verifikasi token
     try {
       const payload: any = await this.jwtService.verifyAsync(token);
-      req.user = payload; // attach payload ke request
+      req.user = payload; 
     } catch {
       throw new UnauthorizedException('Token invalid');
     }
 
-    // cek blacklist
     const blacklisted = await this.authService.isTokenBlacklisted(token);
     if (blacklisted) throw new UnauthorizedException('Token revoked');
 

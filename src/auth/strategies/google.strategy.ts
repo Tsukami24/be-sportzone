@@ -14,10 +14,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: configService.get<string>('GOOGLE_CLIENT_ID') || '',
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET') || '',
       callbackURL:
-        configService.get<string>('GOOGLE_CALLBACK_URL') ||'http://localhost:3000/auth/google/callback',
+        configService.get<string>('GOOGLE_CALLBACK_URL') ||
+        'http://localhost:3000/auth/google/callback',
       scope: ['email', 'profile'],
     });
-
   }
 
   async validate(
@@ -28,11 +28,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ): Promise<any> {
     const { emails, displayName } = profile;
 
-    const user = await this.authService.validateGoogleLogin(
+    const authResult = await this.authService.validateGoogleLogin(
       emails[0].value,
       displayName,
-    );
+    ); 
 
-    done(null, user);
+    done(null, authResult);
   }
 }

@@ -66,17 +66,15 @@ export class AuthService {
   let user = await this.userService.findByEmail(email);
 
   if (!user) {
-    // register user baru
     const roleCustomer = await this.userService.getRoleByName('customer');
     user = await this.userService.create({
       username,
       email,
-      password: '', // kosong karena login pakai Google
+      password: '',
       role: roleCustomer,
     });
   }
 
-  // buat token JWT
   const payload = { sub: user.id, email: user.email, role: user.role!.name };
   const token = await this.jwtService.signAsync(payload);
 

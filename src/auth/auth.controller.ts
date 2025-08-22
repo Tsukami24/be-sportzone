@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Req, HttpCode, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, HttpCode, UseGuards, Get, Res } from '@nestjs/common';
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import type { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -45,13 +46,13 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-
-  }
+  async googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req) {
-    return req.user;
+  async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
+    const { token } = req.user || {};
+    const frontend = process.env.FRONTEND_URL || 'http://localhost:3001';
+    return res.redirect(`${frontend}/home?token=${token}`);
   }
 }
