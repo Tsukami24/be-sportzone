@@ -1,11 +1,12 @@
-import { IsString, IsNumber, IsUUID, IsOptional, Min, IsUrl } from 'class-validator';
+import { IsString, IsNumber, IsUUID, IsOptional, Min, IsUrl, IsEnum } from 'class-validator';
+import { StatusProduk } from '../entities/produk.entity';
 
 export class CreateProdukDto {
     @IsUUID()
-    kategori_id: string;
+    subkategori_id: string;
 
     @IsUUID()
-    subkategori_id: string;
+    brand_id: string;
 
     @IsString()
     nama: string;
@@ -17,13 +18,15 @@ export class CreateProdukDto {
     @Min(0)
     harga: number;
 
-    @IsNumber()
-    @Min(0)
-    stok: number;
-
     @IsOptional()
     @IsString()
     @IsUrl()
     gambar?: string;
+
+    @IsOptional()
+    @IsEnum(StatusProduk)
+    status?: StatusProduk;
 }
+
+
 

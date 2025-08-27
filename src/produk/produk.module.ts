@@ -3,13 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProdukService } from './produk.service';
 import { ProdukController } from './produk.controller';
 import { Produk } from './entities/produk.entity';
-import { KategoriOlahraga } from '../kategori-olahraga/entities/kategori-olahraga.entity/kategori-olahraga.entity';
+import { ProdukVarian } from './entities/produk-varian.entity';
 import { SubkategoriPeralatan } from '../subkategori-peralatan/entities/subkategori-peralatan.entity';
+import { Brand } from '../brand/entities/brand.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Produk, KategoriOlahraga, SubkategoriPeralatan]),
+    TypeOrmModule.forFeature([Produk, ProdukVarian, SubkategoriPeralatan, Brand]),
     AuthModule
   ],
   controllers: [ProdukController],

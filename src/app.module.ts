@@ -8,6 +8,7 @@ import { KategoriOlahragaModule } from './kategori-olahraga/kategori-olahraga.mo
 import { PetugasModule } from './petugas/petugas.module';
 import { SubkategoriPeralatanModule } from './subkategori-peralatan/subkategori-peralatan.module';
 import { ProdukModule } from './produk/produk.module';
+import { BrandModule } from './brand/brand.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -26,6 +27,7 @@ import { databaseConfig } from './config/database.config';
     KategoriOlahragaModule,
     SubkategoriPeralatanModule,
     ProdukModule,
+    BrandModule,
   ],
 })
 export class AppModule {}

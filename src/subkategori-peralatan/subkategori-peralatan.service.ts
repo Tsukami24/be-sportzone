@@ -16,7 +16,6 @@ export class SubkategoriPeralatanService {
     ) {}
 
     async create(createSubkategoriPeralatanDto: CreateSubkategoriPeralatanDto): Promise<SubkategoriPeralatan> {
-        // Validasi kategori olahraga exists
         const kategoriOlahraga = await this.kategoriOlahragaRepository.findOne({
             where: { id: createSubkategoriPeralatanDto.kategori_olahraga_id }
         });
@@ -61,7 +60,6 @@ export class SubkategoriPeralatanService {
         const subkategoriPeralatan = await this.findOne(id);
 
         if (updateSubkategoriPeralatanDto.kategori_olahraga_id) {
-            // Validasi kategori olahraga exists jika diupdate
             const kategoriOlahraga = await this.kategoriOlahragaRepository.findOne({
                 where: { id: updateSubkategoriPeralatanDto.kategori_olahraga_id }
             });

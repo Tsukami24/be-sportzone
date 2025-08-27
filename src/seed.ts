@@ -10,7 +10,6 @@ async function seed() {
   const usersService = app.get(UsersService);
   const rolesService = app.get(RolesService);
 
-
   const roles = ['admin', 'petugas', 'customer'];
   for (const name of roles) {
     const existing = await rolesService.findByName(name);
@@ -39,8 +38,6 @@ async function seed() {
   } else {
     console.log('Admin account already exists.');
   }
-
-
 
   await app.close();
 }
