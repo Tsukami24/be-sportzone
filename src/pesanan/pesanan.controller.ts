@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, Req, HttpStatus, UseGuards } from '@nestjs/common';
 import { PesananService } from './pesanan.service';
 import { CreatePesananDto } from './dto/create-pesanan.dto';
 import { UpdatePesananDto } from './dto/update-pesanan.dto';
@@ -15,19 +15,21 @@ import { RolesGuard } from 'src/auth/guards/role.guard';
 @Controller('pesanan')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PesananController {
-  constructor(
-    private readonly pesananService: PesananService,
-  ) {}
+  constructor(private readonly pesananService: PesananService) {}
 
-  @Roles('user')
+  @Roles('customer')
+  @Get('history')
+  async getHistory(@Req() req) {
+    return this.pesananService.findByUser(req.user.sub || req.user.userId);
+  }
+
+  @Roles('customer')
   @Post()
   async create(
     @Body() createPesananDto: CreatePesananDto,
   ): Promise<PesananDto> {
     try {
-      const pesanan = await this.pesananService.create(
-        createPesananDto,
-      );
+      const pesanan = await this.pesananService.create(createPesananDto);
       return new PesananDto(pesanan);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -45,7 +47,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'user')
+  @Roles('admin', 'customer')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<PesananDto> {
     try {
@@ -56,17 +58,14 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'user')
+  @Roles('admin', 'customer')
   @Put(':id')
   async update(
     @Param('id') id: string,
     @Body() updatePesananDto: UpdatePesananDto,
   ): Promise<PesananDto> {
     try {
-      const pesanan = await this.pesananService.update(
-        id,
-        updatePesananDto,
-      );
+      const pesanan = await this.pesananService.update(id, updatePesananDto);
       return new PesananDto(pesanan);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
@@ -84,15 +83,14 @@ export class PesananController {
   }
 
   // Pesanan Item endpoints
-  @Roles('admin', 'user')
+  @Roles('admin', 'customer')
   @Post('item')
   async createItem(
     @Body() createPesananItemDto: CreatePesananItemDto,
   ): Promise<PesananItemDto> {
     try {
-      const pesananItem = await this.pesananService.createItem(
-        createPesananItemDto,
-      );
+      const pesananItem =
+        await this.pesananService.createItem(createPesananItemDto);
       return new PesananItemDto(pesananItem);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -110,7 +108,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'user')
+  @Roles('admin', 'customer')
   @Get('item/:id')
   async findOneItem(@Param('id') id: string): Promise<PesananItemDto> {
     try {
@@ -121,7 +119,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'user')
+  @Roles('admin', 'customer')
   @Put('item/:id')
   async updateItem(
     @Param('id') id: string,

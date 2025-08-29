@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  HttpException,
+  HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { ProdukService } from './produk.service';
 import { CreateProdukDto } from './dto/create-produk.dto';
 import { UpdateProdukDto } from './dto/update-produk.dto';
@@ -9,6 +22,9 @@ import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ProdukDto } from './dto/produk.dto';
 import { ProdukVarianDto } from './dto/produk-varian.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('produk')
 export class ProdukController {
@@ -17,13 +33,28 @@ export class ProdukController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('petugas')
-  async create(@Body() createProdukDto: CreateProdukDto): Promise<ProdukDto> {
-    try {
-      const produk = await this.produkService.create(createProdukDto);
-      return new ProdukDto(await this.produkService.findOne(produk.id));
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+  @UseInterceptors(
+    FileInterceptor('gambar', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          callback(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async create(
+    @Body() createProdukDto: CreateProdukDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<ProdukDto> {
+    if (file) {
+      createProdukDto.gambar = `${process.env.BASE_URL}/uploads/${file.filename}`;
     }
+
+    const produk = await this.produkService.create(createProdukDto);
+    return new ProdukDto(await this.produkService.findOne(produk.id));
   }
 
   @Post(':produkId/varian')
@@ -116,16 +147,27 @@ export class ProdukController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('petugas')
+  @UseInterceptors(
+    FileInterceptor('gambar', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, unique + extname(file.originalname));
+        },
+      }),
+    }),
+  )
   async update(
     @Param('id') id: string,
-    @Body() updateProdukDto: UpdateProdukDto,
+    @Body() dto: UpdateProdukDto,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<ProdukDto> {
-    try {
-      const produk = await this.produkService.update(id, updateProdukDto);
-      return new ProdukDto(await this.produkService.findOne(produk.id));
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    if (file) {
+      dto.gambar = `${process.env.BASE_URL}/uploads/${file.filename}`;
     }
+    const produk = await this.produkService.update(id, dto);
+    return new ProdukDto(await this.produkService.findOne(produk.id));
   }
 
   @Patch('varian/:varianId')

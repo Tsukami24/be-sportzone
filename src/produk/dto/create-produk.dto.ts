@@ -20,13 +20,14 @@ export class CreateProdukDto {
 
     @IsOptional()
     @IsString()
-    @IsUrl()
+    @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
     gambar?: string;
 
     @IsOptional()
     @IsEnum(StatusProduk)
     status?: StatusProduk;
 }
+
 
 
 

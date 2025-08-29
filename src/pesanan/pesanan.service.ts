@@ -11,8 +11,10 @@ import { UpdatePesananItemDto } from './dto/update-pesanan-item.dto';
 @Injectable()
 export class PesananService {
   constructor(
-    @InjectRepository(Pesanan) private readonly pesananRepo: Repository<Pesanan>,
-    @InjectRepository(PesananItem) private readonly pesananItemRepo: Repository<PesananItem>,
+    @InjectRepository(Pesanan)
+    private readonly pesananRepo: Repository<Pesanan>,
+    @InjectRepository(PesananItem)
+    private readonly pesananItemRepo: Repository<PesananItem>,
   ) {}
 
   async create(createPesananDto: CreatePesananDto): Promise<Pesanan> {
@@ -25,9 +27,9 @@ export class PesananService {
   }
 
   async findOne(id: string): Promise<Pesanan> {
-    const pesanan = await this.pesananRepo.findOne({ 
+    const pesanan = await this.pesananRepo.findOne({
       where: { id },
-      relations: ['user', 'pesanan_items'] 
+      relations: ['user', 'pesanan_items'],
     });
     if (!pesanan) {
       throw new Error('Pesanan tidak ditemukan');
@@ -35,7 +37,23 @@ export class PesananService {
     return pesanan;
   }
 
-  async update(id: string, updatePesananDto: UpdatePesananDto): Promise<Pesanan> {
+  async findByUser(userId: string): Promise<Pesanan[]> {
+    return this.pesananRepo.find({
+      where: { user: { id: userId } },
+      relations: [
+        'user',
+        'pesanan_items',
+        'pesanan_items.produk',
+        'pesanan_items.produk_varian',
+      ],
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async update(
+    id: string,
+    updatePesananDto: UpdatePesananDto,
+  ): Promise<Pesanan> {
     await this.pesananRepo.update(id, updatePesananDto);
     const updatedPesanan = await this.pesananRepo.findOne({ where: { id } });
     if (!updatedPesanan) {
@@ -51,20 +69,23 @@ export class PesananService {
     }
   }
 
-  // Pesanan Item methods
-  async createItem(createPesananItemDto: CreatePesananItemDto): Promise<PesananItem> {
+  async createItem(
+    createPesananItemDto: CreatePesananItemDto,
+  ): Promise<PesananItem> {
     const pesananItem = this.pesananItemRepo.create(createPesananItemDto);
     return this.pesananItemRepo.save(pesananItem);
   }
 
   async findAllItems(): Promise<PesananItem[]> {
-    return this.pesananItemRepo.find({ relations: ['pesanan', 'produk', 'produk_varian'] });
+    return this.pesananItemRepo.find({
+      relations: ['pesanan', 'produk', 'produk_varian'],
+    });
   }
 
   async findOneItem(id: string): Promise<PesananItem> {
-    const pesananItem = await this.pesananItemRepo.findOne({ 
+    const pesananItem = await this.pesananItemRepo.findOne({
       where: { id },
-      relations: ['pesanan', 'produk', 'produk_varian'] 
+      relations: ['pesanan', 'produk', 'produk_varian'],
     });
     if (!pesananItem) {
       throw new Error('Item pesanan tidak ditemukan');
@@ -72,9 +93,14 @@ export class PesananService {
     return pesananItem;
   }
 
-  async updateItem(id: string, updatePesananItemDto: UpdatePesananItemDto): Promise<PesananItem> {
+  async updateItem(
+    id: string,
+    updatePesananItemDto: UpdatePesananItemDto,
+  ): Promise<PesananItem> {
     await this.pesananItemRepo.update(id, updatePesananItemDto);
-    const updatedPesananItem = await this.pesananItemRepo.findOne({ where: { id } });
+    const updatedPesananItem = await this.pesananItemRepo.findOne({
+      where: { id },
+    });
     if (!updatedPesananItem) {
       throw new Error('Item pesanan tidak ditemukan');
     }

@@ -24,6 +24,9 @@ export class ProdukService {
   ) {}
 
   async create(createProdukDto: CreateProdukDto): Promise<Produk> {
+    if (createProdukDto.gambar && createProdukDto.gambar.startsWith('blob:')) {
+      throw new BadRequestException('URL gambar tidak valid. Harus http/https, bukan blob:');
+    }
     const subkategori = await this.subkategoriRepository.findOne({
       where: { id: createProdukDto.subkategori_id },
     });
@@ -106,6 +109,10 @@ export class ProdukService {
   async update(id: string, updateProdukDto: UpdateProdukDto): Promise<Produk> {
     const produk = await this.findOne(id);
 
+    if (updateProdukDto.gambar && updateProdukDto.gambar.startsWith('blob:')) {
+      throw new BadRequestException('URL gambar tidak valid. Harus http/https, bukan blob:');
+    }
+
     if (updateProdukDto.subkategori_id) {
       const subkategori = await this.subkategoriRepository.findOne({
         where: { id: updateProdukDto.subkategori_id },
@@ -185,6 +192,7 @@ export class ProdukService {
     });
   }
 }
+
 
 
 
