@@ -10,6 +10,8 @@ import {
   HttpException,
   HttpStatus,
   HttpCode,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { BrandService } from './brand.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
@@ -18,6 +20,9 @@ import { BrandDto } from './dto/brand.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('brand')
 export class BrandController {
@@ -38,8 +43,25 @@ export class BrandController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async create(@Body() dto: CreateBrandDto): Promise<BrandDto> {
+  @UseInterceptors(
+    FileInterceptor('logo', {
+      storage: diskStorage({
+        destination: './uploads/brands',
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, unique + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async create(
+    @Body() dto: CreateBrandDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<BrandDto> {
     try {
+      if (file) {
+        dto.logo = `${process.env.BASE_URL}/uploads/brands/${file.filename}`;
+      }
       const brand = await this.brandService.create(dto);
       return new BrandDto(brand);
     } catch (error: any) {
@@ -50,11 +72,26 @@ export class BrandController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
+  @UseInterceptors(
+    FileInterceptor('logo', {
+      storage: diskStorage({
+        destination: './uploads/brands',
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, unique + extname(file.originalname));
+        },
+      }),
+    }),
+  )
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateBrandDto,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<BrandDto> {
     try {
+      if (file) {
+        dto.logo = `${process.env.BASE_URL}/uploads/brands/${file.filename}`;
+      }
       const brand = await this.brandService.update(id, dto);
       return new BrandDto(brand);
     } catch (error: any) {
