@@ -13,6 +13,7 @@ import { ProdukModule } from './produk/produk.module';
 import { BrandModule } from './brand/brand.module';
 import { PesananModule } from './pesanan/pesanan.module';
 import { KeranjangModule } from './keranjang/keranjang.module';
+import { PembayaranModule } from './pembayaran/pembayaran.module';
 import { databaseConfig } from './config/database.config';
 
 @Module({
@@ -39,6 +40,7 @@ import { databaseConfig } from './config/database.config';
     BrandModule,
     PesananModule,
     KeranjangModule,
+    PembayaranModule,
   ],
 })
 export class AppModule {}
