@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Param, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Get,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { PembayaranService } from './pembayaran.service';
 
 @Controller('pembayaran')
@@ -13,6 +21,11 @@ export class PembayaranController {
   @Post('initiate')
   async initiatePayment(@Body('pesananId') pesananId: string) {
     return this.pembayaranService.initiatePayment(pesananId);
+  }
+
+  @Post('cod')
+  async createCodPayment(@Body('pesananId') pesananId: string) {
+    return this.pembayaranService.createCodPayment(pesananId);
   }
 
   @Post('notification')

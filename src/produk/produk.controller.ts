@@ -10,7 +10,7 @@ import {
   HttpException,
   HttpStatus,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProdukService } from './produk.service';
 import { CreateProdukDto } from './dto/create-produk.dto';
@@ -22,7 +22,7 @@ import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ProdukDto } from './dto/produk.dto';
 import { ProdukVarianDto } from './dto/produk-varian.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -34,29 +34,29 @@ export class ProdukController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('petugas')
   @UseInterceptors(
-    FileInterceptor('gambar', {
+    FilesInterceptor('gambar', 5, {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, callback) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          callback(null, uniqueSuffix + extname(file.originalname));
+        filename: (req, file, cb) => {
+          const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, unique + extname(file.originalname));
         },
       }),
     }),
   )
   async create(
     @Body() createProdukDto: CreateProdukDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<ProdukDto> {
-    if (file) {
-      createProdukDto.gambar = `${process.env.BASE_URL}/uploads/${file.filename}`;
+    if (files && files.length > 0) {
+      createProdukDto.gambar = files.map(
+        (file) => `${process.env.BASE_URL}/uploads/${file.filename}`,
+      );
     }
 
     const produk = await this.produkService.create(createProdukDto);
     return new ProdukDto(await this.produkService.findOne(produk.id));
   }
-
   @Post(':produkId/varian')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('petugas')
@@ -148,7 +148,7 @@ export class ProdukController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('petugas')
   @UseInterceptors(
-    FileInterceptor('gambar', {
+    FilesInterceptor('gambar', 5, {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
@@ -161,11 +161,33 @@ export class ProdukController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProdukDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<ProdukDto> {
-    if (file) {
-      dto.gambar = `${process.env.BASE_URL}/uploads/${file.filename}`;
+    // ✅ kalau upload file baru → gabungkan dengan gambar yang sudah ada
+    if (files && files.length > 0) {
+      // Ambil produk yang sudah ada untuk mendapatkan gambar existing
+      const existingProduk = await this.produkService.findOne(id);
+      const existingGambar = existingProduk.gambar || [];
+
+      // Filter out any non-URL strings that might be causing the "existing 1 and 2" issue
+      // ✅ Perbaikan: cek type dulu sebelum menggunakan startsWith
+      const validExistingGambar = existingGambar.filter(
+        (gambar) =>
+          typeof gambar === 'string' &&
+          gambar &&
+          (gambar.startsWith('http://') ||
+            gambar.startsWith('https://') ||
+            gambar.startsWith('/')),
+      );
+
+      // Gabungkan gambar existing dengan gambar baru
+      const newGambarUrls = files.map(
+        (file) => `${process.env.BASE_URL}/uploads/${file.filename}`,
+      );
+
+      dto.gambar = [...validExistingGambar, ...newGambarUrls];
     }
+
     const produk = await this.produkService.update(id, dto);
     return new ProdukDto(await this.produkService.findOne(produk.id));
   }

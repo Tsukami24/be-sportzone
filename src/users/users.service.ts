@@ -32,11 +32,14 @@ export class UsersService {
     return this.roleRepo.findOne({ where: { name } });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<User> {
     const user = await this.userRepo.findOne({
       where: { id },
       relations: ['role'],
     });
+    if (!user) {
+      throw new Error('User not found');
+    }
     return user;
   }
 

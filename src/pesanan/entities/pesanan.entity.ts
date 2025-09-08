@@ -21,13 +21,13 @@ export class Pesanan {
   @Column({ type: 'timestamp' })
   tanggal_pesanan: Date;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 12, scale: 2 })
   total_harga: number;
 
   @Column({
     type: 'enum',
     enum: StatusPesanan,
-    default: StatusPesanan.PENDING
+    default: StatusPesanan.PENDING,
   })
   status: StatusPesanan;
 
@@ -44,6 +44,6 @@ export class Pesanan {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToMany(() => PesananItem, pesananItem => pesananItem.pesanan)
+  @OneToMany(() => PesananItem, (pesananItem) => pesananItem.pesanan)
   pesanan_items: PesananItem[];
 }

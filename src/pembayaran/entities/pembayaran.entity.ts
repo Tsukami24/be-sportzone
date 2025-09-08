@@ -3,7 +3,6 @@ import { Pesanan } from 'src/pesanan/entities/pesanan.entity';
 
 export enum MetodePembayaran {
   COD = 'cod',
-  EWALLET = 'e-wallet',
   MIDTRANS = 'midtrans',
 }
 

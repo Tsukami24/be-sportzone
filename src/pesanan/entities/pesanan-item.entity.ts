@@ -20,10 +20,12 @@ export class PesananItem {
   @Column({ type: 'int' })
   kuantitas: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 12, scale: 2 })
   harga_satuan: number;
 
-  @ManyToOne(() => Pesanan, pesanan => pesanan.pesanan_items, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Pesanan, (pesanan) => pesanan.pesanan_items, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'pesanan_id' })
   pesanan: Pesanan;
 

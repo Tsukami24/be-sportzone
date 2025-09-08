@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Produk } from './entities/produk.entity';
@@ -24,9 +28,15 @@ export class ProdukService {
   ) {}
 
   async create(createProdukDto: CreateProdukDto): Promise<Produk> {
-    if (createProdukDto.gambar && createProdukDto.gambar.startsWith('blob:')) {
-      throw new BadRequestException('URL gambar tidak valid. Harus http/https, bukan blob:');
+    if (createProdukDto.gambar && createProdukDto.gambar.length > 0) {
+      const invalid = createProdukDto.gambar.find((g) => g.startsWith('blob:'));
+      if (invalid) {
+        throw new BadRequestException(
+          'URL gambar tidak valid. Harus http/https, bukan blob:',
+        );
+      }
     }
+
     const subkategori = await this.subkategoriRepository.findOne({
       where: { id: createProdukDto.subkategori_id },
     });
@@ -109,29 +119,38 @@ export class ProdukService {
   async update(id: string, updateProdukDto: UpdateProdukDto): Promise<Produk> {
     const produk = await this.findOne(id);
 
-    if (updateProdukDto.gambar && updateProdukDto.gambar.startsWith('blob:')) {
-      throw new BadRequestException('URL gambar tidak valid. Harus http/https, bukan blob:');
-    }
-
-    if (updateProdukDto.subkategori_id) {
-      const subkategori = await this.subkategoriRepository.findOne({
-        where: { id: updateProdukDto.subkategori_id },
-      });
-      if (!subkategori) {
-        throw new BadRequestException('Subkategori tidak ditemukan');
+    // pastikan dto.gambar dalam bentuk array
+    let gambarPayload: any[] = [];
+    if (updateProdukDto.gambar) {
+      if (Array.isArray(updateProdukDto.gambar)) {
+        gambarPayload = updateProdukDto.gambar;
+      } else {
+        gambarPayload = [updateProdukDto.gambar];
       }
     }
 
-    if (updateProdukDto.brand_id) {
-      const brand = await this.brandRepository.findOne({
-        where: { id: updateProdukDto.brand_id },
-      });
-      if (!brand) {
-        throw new BadRequestException('Brand tidak ditemukan');
+    if (gambarPayload.length > 0) {
+      // ✅ Mode Full Replace (semua string)
+      if (gambarPayload.every((g) => typeof g === 'string')) {
+        produk.gambar = gambarPayload as string[];
+      }
+
+      // ✅ Mode Partial Update (ada { index, url })
+      if (gambarPayload.some((g) => typeof g !== 'string')) {
+        produk.gambar = produk.gambar || [];
+
+        gambarPayload.forEach((g) => {
+          if (typeof g !== 'string' && g.index !== undefined) {
+            produk.gambar[g.index] = g.url;
+          }
+        });
       }
     }
 
-    Object.assign(produk, updateProdukDto);
+    // Jangan timpa gambar hasil proses dengan undefined dari DTO
+    const { gambar, ...rest } = updateProdukDto;
+    Object.assign(produk, rest);
+
     return await this.produkRepository.save(produk);
   }
 
@@ -192,7 +211,3 @@ export class ProdukService {
     });
   }
 }
-
-
-
-

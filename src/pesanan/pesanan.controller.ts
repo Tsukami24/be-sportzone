@@ -1,16 +1,26 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, Req, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpException,
+  Req,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { PesananService } from './pesanan.service';
 import { CreatePesananDto } from './dto/create-pesanan.dto';
-import { UpdatePesananDto } from './dto/update-pesanan.dto';
 import { PesananDto } from './dto/pesanan.dto';
 import { CreatePesananItemDto } from './dto/create-pesanan-item.dto';
 import { UpdatePesananItemDto } from './dto/update-pesanan-item.dto';
 import { PesananItemDto } from './dto/pesanan-item.dto';
-import { Pesanan } from './entities/pesanan.entity';
-import { PesananItem } from './entities/pesanan-item.entity';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
+import { UpdateStatusPesananDto } from './dto/update-status-pesanan.dto';
 
 @Controller('pesanan')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -58,17 +68,38 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'customer')
-  @Put(':id')
-  async update(
+  @Roles('admin')
+  @Put(':id/status')
+  async updateStatus(
     @Param('id') id: string,
-    @Body() updatePesananDto: UpdatePesananDto,
+    @Body() updateStatusDto: UpdateStatusPesananDto,
+    @Req() req,
   ): Promise<PesananDto> {
     try {
-      const pesanan = await this.pesananService.update(id, updatePesananDto);
+      const pesanan = await this.pesananService.updateStatus(
+        id,
+        updateStatusDto.status,
+        req.user.role || 'customer',
+        req.user.sub || req.user.userId,
+      );
       return new PesananDto(pesanan);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Roles('admin', 'customer')
+  @Put(':id/cancel')
+  async cancelOrder(@Param('id') id: string, @Req() req): Promise<PesananDto> {
+    try {
+      const pesanan = await this.pesananService.cancelOrder(
+        id,
+        req.user.role?.name || 'customer',
+        req.user.sub || req.user.userId,
+      );
+      return new PesananDto(pesanan);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 

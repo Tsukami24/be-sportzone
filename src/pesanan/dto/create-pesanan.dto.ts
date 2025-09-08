@@ -1,5 +1,16 @@
-import { IsUUID, IsInt, IsString, IsEnum, IsDateString, IsNotEmpty } from "class-validator";
-import { StatusPesanan } from "../entities/pesanan.entity";
+import {
+  IsUUID,
+  IsNumber,
+  IsString,
+  IsEnum,
+  IsDateString,
+  IsNotEmpty,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { StatusPesanan } from '../entities/pesanan.entity';
+import { CreatePesananItemDto } from './create-pesanan-item.dto';
 
 export class CreatePesananDto {
   @IsUUID()
@@ -8,9 +19,9 @@ export class CreatePesananDto {
 
   @IsDateString()
   @IsNotEmpty()
-  tanggal_pesanan: Date;
+  tanggal_pesanan: string;
 
-  @IsInt()
+  @IsNumber()
   @IsNotEmpty()
   total_harga: number;
 
@@ -21,4 +32,9 @@ export class CreatePesananDto {
   @IsString()
   @IsNotEmpty()
   alamat_pengiriman: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePesananItemDto)
+  items: CreatePesananItemDto[];
 }
