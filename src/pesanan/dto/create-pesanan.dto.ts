@@ -11,6 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { StatusPesanan } from '../entities/pesanan.entity';
 import { CreatePesananItemDto } from './create-pesanan-item.dto';
+import { MetodePembayaran } from 'src/pembayaran/entities/pembayaran.entity';
 
 export class CreatePesananDto {
   @IsUUID()
@@ -26,7 +27,6 @@ export class CreatePesananDto {
   total_harga: number;
 
   @IsEnum(StatusPesanan)
-  @IsNotEmpty()
   status: StatusPesanan;
 
   @IsString()
@@ -37,4 +37,7 @@ export class CreatePesananDto {
   @ValidateNested({ each: true })
   @Type(() => CreatePesananItemDto)
   items: CreatePesananItemDto[];
+
+  @IsEnum(MetodePembayaran)
+  metode_pembayaran: MetodePembayaran;
 }

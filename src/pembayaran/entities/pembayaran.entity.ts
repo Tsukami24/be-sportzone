@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Pesanan } from 'src/pesanan/entities/pesanan.entity';
 
 export enum MetodePembayaran {
@@ -10,6 +17,7 @@ export enum StatusPembayaran {
   BELUM_BAYAR = 'belum bayar',
   SUDAH_BAYAR = 'sudah bayar',
   GAGAL = 'gagal',
+  DIKEMBALIKAN = 'dikembalikan',
 }
 
 @Entity('pembayaran')

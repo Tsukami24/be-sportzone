@@ -10,10 +10,17 @@ import { ProdukModule } from 'src/produk/produk.module';
 import { PembayaranModule } from 'src/pembayaran/pembayaran.module';
 import { Produk } from 'src/produk/entities/produk.entity';
 import { ProdukVarian } from 'src/produk/entities/produk-varian.entity';
+import { Pembayaran } from 'src/pembayaran/entities/pembayaran.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pesanan, PesananItem, Produk, ProdukVarian]),
+    TypeOrmModule.forFeature([
+      Pesanan,
+      PesananItem,
+      Produk,
+      ProdukVarian,
+      Pembayaran,
+    ]),
     AuthModule,
     UsersModule,
     ProdukModule,

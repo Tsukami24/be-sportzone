@@ -9,9 +9,10 @@ import { CreatePesananItemDto } from './dto/create-pesanan-item.dto';
 import { UpdatePesananItemDto } from './dto/update-pesanan-item.dto';
 import { StatusPesanan } from './entities/pesanan.entity';
 import { PembayaranService } from '../pembayaran/pembayaran.service';
-import { MetodePembayaran } from '../pembayaran/entities/pembayaran.entity';
+import { Pembayaran, MetodePembayaran } from '../pembayaran/entities/pembayaran.entity';
 import { ProdukVarian } from '../produk/entities/produk-varian.entity';
 import { Produk } from '../produk/entities/produk.entity';
+import { StatusPembayaran } from '../pembayaran/entities/pembayaran.entity';
 
 @Injectable()
 export class PesananService {
@@ -24,16 +25,17 @@ export class PesananService {
     private readonly varianRepo: Repository<ProdukVarian>,
     @InjectRepository(Produk)
     private readonly produkRepo: Repository<Produk>,
+    @InjectRepository(Pembayaran)
+    private readonly pembayaranRepo: Repository<Pembayaran>,
 
     @Inject(forwardRef(() => PembayaranService))
     private readonly pembayaranService: PembayaranService,
   ) {}
 
   async create(createPesananDto: CreatePesananDto): Promise<Pesanan> {
-    // Use transaction for data consistency
     return await this.pesananRepo.manager.transaction(
       async (transactionalEntityManager) => {
-        // Create main order
+        // Buat pesanan utama
         const pesanan = transactionalEntityManager.create(Pesanan, {
           tanggal_pesanan: createPesananDto.tanggal_pesanan,
           total_harga: createPesananDto.total_harga,
@@ -41,13 +43,13 @@ export class PesananService {
           user_id: createPesananDto.user_id,
         });
 
-        // Save main order first to get ID
+        // Simpan pesanan untuk dapatkan ID
         const savedPesanan = await transactionalEntityManager.save(
           Pesanan,
           pesanan,
         );
 
-        // Create and save order items
+        // Buat dan simpan item pesanan
         if (createPesananDto.items && createPesananDto.items.length > 0) {
           const pesananItems: PesananItem[] = [];
 
@@ -67,8 +69,24 @@ export class PesananService {
             pesananItems.push(savedItem);
           }
 
-          // Associate items with order
           savedPesanan.pesanan_items = pesananItems;
+        }
+
+        // ✅ Setelah pesanan tersimpan → langsung bikin pembayaran
+        let pembayaran = await transactionalEntityManager.findOne(Pembayaran, {
+          where: { pesanan: { id: savedPesanan.id } },
+        });
+        if (!pembayaran) {
+          pembayaran = transactionalEntityManager.create(Pembayaran, {
+            pesanan: savedPesanan,
+            metode: createPesananDto.metode_pembayaran,
+            status: StatusPembayaran.BELUM_BAYAR,
+          });
+          await transactionalEntityManager.save(Pembayaran, pembayaran);
+        }
+
+        if (createPesananDto.metode_pembayaran === MetodePembayaran.MIDTRANS) {
+          await this.pembayaranService.initiatePayment(savedPesanan.id);
         }
 
         return savedPesanan;
@@ -231,7 +249,36 @@ export class PesananService {
     userRole: string,
     userId?: string,
   ): Promise<Pesanan> {
-    return this.updateStatus(id, StatusPesanan.DIBATALKAN, userRole, userId);
+    const pesanan = await this.updateStatus(
+      id,
+      StatusPesanan.DIBATALKAN,
+      userRole,
+      userId,
+    );
+
+    const pembayaran = await this.pembayaranService.getPaymentStatus(id);
+
+    // Midtrans → refund
+    if (
+      pembayaran.metode === MetodePembayaran.MIDTRANS &&
+      pembayaran.status === StatusPembayaran.SUDAH_BAYAR
+    ) {
+      await this.pembayaranService.refundPayment(
+        id,
+        undefined,
+        'Pesanan dibatalkan',
+      );
+    }
+
+    // COD → tandai gagal
+    if (pembayaran.metode === MetodePembayaran.COD) {
+      await this.pembayaranService.updatePembayaranStatus(
+        pembayaran.id,
+        StatusPembayaran.GAGAL,
+      );
+    }
+
+    return pesanan;
   }
 
   async remove(id: string): Promise<void> {

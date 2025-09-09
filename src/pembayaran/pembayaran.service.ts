@@ -12,6 +12,7 @@ import * as midtransClient from 'midtrans-client';
 @Injectable()
 export class PembayaranService {
   private snapClient: midtransClient.Snap;
+  private coreApiClient: midtransClient.CoreApi;
 
   constructor(
     @InjectRepository(Pembayaran)
@@ -27,6 +28,12 @@ export class PembayaranService {
     private readonly pesananService: PesananService,
   ) {
     this.snapClient = new midtransClient.Snap({
+      isProduction: false,
+      serverKey: process.env.MIDTRANS_SERVER_KEY || '',
+      clientKey: process.env.MIDTRANS_CLIENT_KEY || '',
+    });
+
+    this.coreApiClient = new midtransClient.CoreApi({
       isProduction: false,
       serverKey: process.env.MIDTRANS_SERVER_KEY || '',
       clientKey: process.env.MIDTRANS_CLIENT_KEY || '',
@@ -90,6 +97,8 @@ export class PembayaranService {
     let pembayaran = await this.pembayaranRepo.findOne({
       where: { pesanan: { id: pesananId } },
     });
+
+    console.log('Cek pembayaran COD:', pembayaran);
 
     if (!pembayaran) {
       pembayaran = this.pembayaranRepo.create({
@@ -171,21 +180,25 @@ export class PembayaranService {
     console.log(`Found ${orderItems.length} order items for order ${orderId}`);
 
     for (const item of orderItems) {
-      console.log(`Processing item: ${item.id}, quantity: ${item.kuantitas}, variant_id: ${item.produk_varian_id}`);
+      console.log(
+        `Processing item: ${item.id}, quantity: ${item.kuantitas}, variant_id: ${item.produk_varian_id}`,
+      );
 
       if (item.produk_varian_id) {
         // Reduce stock from product variant
         console.log(`Reducing stock from variant ${item.produk_varian_id}`);
         const varian = await this.varianRepo.findOne({
-          where: { id: item.produk_varian_id }
+          where: { id: item.produk_varian_id },
         });
 
         if (varian) {
-          console.log(`Variant found: ${varian.id}, current stock: ${varian.stok}`);
+          console.log(
+            `Variant found: ${varian.id}, current stock: ${varian.stok}`,
+          );
           if (varian.stok < item.kuantitas) {
             throw new HttpException(
               `Stok tidak cukup untuk produk ${item.produk.nama}`,
-              HttpStatus.BAD_REQUEST
+              HttpStatus.BAD_REQUEST,
             );
           }
           varian.stok = varian.stok - item.kuantitas;
@@ -215,5 +228,97 @@ export class PembayaranService {
       );
     }
     return pembayaran;
+  }
+
+  async updatePembayaranStatus(
+    pembayaranId: string,
+    status: StatusPembayaran,
+  ): Promise<Pembayaran> {
+    const pembayaran = await this.pembayaranRepo.findOne({
+      where: { id: pembayaranId },
+      relations: ['pesanan'],
+    });
+    if (!pembayaran) {
+      throw new HttpException(
+        'Pembayaran tidak ditemukan',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    pembayaran.status = status;
+
+    // Update pesanan status accordingly for COD payments
+    if (pembayaran.metode === MetodePembayaran.COD) {
+      if (status === StatusPembayaran.SUDAH_BAYAR) {
+        pembayaran.pesanan.status = StatusPesanan.DIPROSES;
+        // Reduce stock for COD payment
+        await this.reduceStockForOrder(pembayaran.pesanan.id);
+      } else if (status === StatusPembayaran.GAGAL) {
+        pembayaran.pesanan.status = StatusPesanan.DIBATALKAN;
+      }
+      await this.pesananService.update(pembayaran.pesanan.id, {
+        status: pembayaran.pesanan.status,
+      });
+    }
+
+    return this.pembayaranRepo.save(pembayaran);
+  }
+
+  async refundPayment(pesananId: string, amount?: number, reason?: string) {
+    const pembayaran = await this.pembayaranRepo.findOne({
+      where: { pesanan: { id: pesananId } },
+      relations: ['pesanan'],
+    });
+
+    if (!pembayaran) {
+      throw new HttpException(
+        'Pembayaran tidak ditemukan',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (pembayaran.metode !== MetodePembayaran.MIDTRANS) {
+      throw new HttpException(
+        'Refund hanya berlaku untuk pembayaran Midtrans',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // sandbox supaya tidak hit API Midtrans
+    if (process.env.MIDTRANS_ENV !== 'production') {
+      console.log('[MOCK] Refund sukses (sandbox, tidak call Midtrans)');
+      pembayaran.status = StatusPembayaran.DIKEMBALIKAN;
+      await this.pembayaranRepo.save(pembayaran);
+
+      return {
+        status_code: '200',
+        status_message: 'Refund berhasil (MOCK)',
+        refund_key: `${pembayaran.pesanan.id}-refund-${Date.now()}`,
+        amount: amount || pembayaran.pesanan.total_harga,
+        reason: reason || 'Pesanan dibatalkan oleh pelanggan',
+      };
+    }
+
+    // beneran call Midtrans
+    try {
+      const response = await this.coreApiClient.transaction.refund(
+        pembayaran.pesanan.id,
+        {
+          refund_key: `${pembayaran.pesanan.id}-refund-${Date.now()}`,
+          amount: amount || pembayaran.pesanan.total_harga,
+          reason: reason || 'Pesanan dibatalkan oleh pelanggan',
+        },
+      );
+
+      pembayaran.status = StatusPembayaran.DIKEMBALIKAN;
+      await this.pembayaranRepo.save(pembayaran);
+
+      return response;
+    } catch (error) {
+      console.error('Refund Error:', error.ApiResponse || error);
+      throw new HttpException(
+        'Gagal melakukan refund ke Midtrans',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

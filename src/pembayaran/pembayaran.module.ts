@@ -7,16 +7,13 @@ import { PesananModule } from 'src/pesanan/pesanan.module';
 import { ProdukVarian } from 'src/produk/entities/produk-varian.entity';
 import { Produk } from 'src/produk/entities/produk.entity';
 import { PesananItem } from 'src/pesanan/entities/pesanan-item.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Pembayaran,
-      ProdukVarian,
-      Produk,
-      PesananItem, 
-    ]),
+    TypeOrmModule.forFeature([Pembayaran, ProdukVarian, Produk, PesananItem]),
     forwardRef(() => PesananModule),
+    forwardRef(() => AuthModule),
   ],
   providers: [PembayaranService],
   controllers: [PembayaranController],
