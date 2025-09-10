@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length, IsUrl } from 'class-validator';
 
 export class CreateBrandDto {
   @IsString()
@@ -10,7 +10,10 @@ export class CreateBrandDto {
   deskripsi?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUrl(
+      { protocols: ['http', 'https'], require_protocol: true },
+      { each: true },
+    )
   logo?: string;
 }
 
