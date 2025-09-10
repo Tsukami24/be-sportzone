@@ -68,7 +68,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin')
+  @Roles('petugas')
   @Put(':id/status')
   async updateStatus(
     @Param('id') id: string,
