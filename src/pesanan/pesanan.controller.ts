@@ -46,7 +46,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin')
+  @Roles('admin', 'petugas')
   @Get()
   async findAll(): Promise<PesananDto[]> {
     try {
@@ -57,7 +57,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'customer')
+  @Roles('admin', 'customer', 'petugas')
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<PesananDto> {
     try {
@@ -128,7 +128,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin')
+  @Roles('admin', 'petugas')
   @Get('item')
   async findAllItems(): Promise<PesananItemDto[]> {
     try {
@@ -139,7 +139,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'customer')
+  @Roles('admin', 'customer', 'petugas')
   @Get('item/:id')
   async findOneItem(@Param('id') id: string): Promise<PesananItemDto> {
     try {
