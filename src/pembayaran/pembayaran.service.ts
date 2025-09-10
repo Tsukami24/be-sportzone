@@ -113,59 +113,73 @@ export class PembayaranService {
   }
 
   async handleNotification(notificationBody: any) {
-    const orderId = notificationBody.order_id;
-    const transactionStatus = notificationBody.transaction_status;
-    const fraudStatus = notificationBody.fraud_status;
+    try {
+      console.log('Midtrans Notification Received:', notificationBody);
 
-    const pembayaran = await this.pembayaranRepo.findOne({
-      where: { pesanan: { id: orderId } },
-      relations: ['pesanan'],
-    });
+      const orderId = notificationBody.order_id;
+      const transactionStatus = notificationBody.transaction_status;
+      const fraudStatus = notificationBody.fraud_status;
 
-    if (!pembayaran) {
-      throw new HttpException(
-        'Pembayaran tidak ditemukan',
-        HttpStatus.NOT_FOUND,
-      );
-    }
+      console.log(`Processing notification for orderId: ${orderId}, status: ${transactionStatus}, fraud: ${fraudStatus}`);
 
-    let shouldReduceStock = false;
+      const pembayaran = await this.pembayaranRepo.findOne({
+        where: { pesanan: { id: orderId } },
+        relations: ['pesanan'],
+      });
 
-    if (transactionStatus === 'capture') {
-      if (fraudStatus === 'challenge') {
-        pembayaran.status = StatusPembayaran.BELUM_BAYAR;
-      } else if (fraudStatus === 'accept') {
+      if (!pembayaran) {
+        console.error(`Pembayaran tidak ditemukan untuk orderId: ${orderId}`);
+        // Return 200 to prevent Midtrans retry
+        return { message: 'Notification processed - payment not found' };
+      }
+
+      console.log(`Found pembayaran: ${pembayaran.id}, current status: ${pembayaran.status}`);
+
+      let shouldReduceStock = false;
+
+      if (transactionStatus === 'capture') {
+        if (fraudStatus === 'challenge') {
+          pembayaran.status = StatusPembayaran.BELUM_BAYAR;
+        } else if (fraudStatus === 'accept') {
+          pembayaran.status = StatusPembayaran.SUDAH_BAYAR;
+          pembayaran.pesanan.status = StatusPesanan.DIPROSES;
+          shouldReduceStock = true;
+        }
+      } else if (transactionStatus === 'settlement') {
         pembayaran.status = StatusPembayaran.SUDAH_BAYAR;
         pembayaran.pesanan.status = StatusPesanan.DIPROSES;
         shouldReduceStock = true;
+      } else if (
+        transactionStatus === 'deny' ||
+        transactionStatus === 'cancel' ||
+        transactionStatus === 'expire'
+      ) {
+        pembayaran.status = StatusPembayaran.GAGAL;
+        pembayaran.pesanan.status = StatusPesanan.PENDING;
+      } else if (transactionStatus === 'pending') {
+        pembayaran.status = StatusPembayaran.BELUM_BAYAR;
+        pembayaran.pesanan.status = StatusPesanan.PENDING;
       }
-    } else if (transactionStatus === 'settlement') {
-      pembayaran.status = StatusPembayaran.SUDAH_BAYAR;
-      pembayaran.pesanan.status = StatusPesanan.DIPROSES;
-      shouldReduceStock = true;
-    } else if (
-      transactionStatus === 'deny' ||
-      transactionStatus === 'cancel' ||
-      transactionStatus === 'expire'
-    ) {
-      pembayaran.status = StatusPembayaran.GAGAL;
-      pembayaran.pesanan.status = StatusPesanan.PENDING;
-    } else if (transactionStatus === 'pending') {
-      pembayaran.status = StatusPembayaran.BELUM_BAYAR;
-      pembayaran.pesanan.status = StatusPesanan.PENDING;
+
+      console.log(`Updating pembayaran status to: ${pembayaran.status}, pesanan status to: ${pembayaran.pesanan.status}`);
+
+      // Reduce stock if payment is successful and status changed to DIPROSES
+      if (shouldReduceStock) {
+        await this.reduceStockForOrder(orderId);
+      }
+
+      await this.pembayaranRepo.save(pembayaran);
+      await this.pesananService.update(pembayaran.pesanan.id, {
+        status: pembayaran.pesanan.status,
+      });
+
+      console.log('Notification processed successfully');
+      return { message: 'Notification processed' };
+    } catch (error) {
+      console.error('Error processing Midtrans notification:', error);
+      // Return 200 to prevent Midtrans retry
+      return { message: 'Notification processed with error' };
     }
-
-    // Reduce stock if payment is successful and status changed to DIPROSES
-    if (shouldReduceStock) {
-      await this.reduceStockForOrder(orderId);
-    }
-
-    await this.pembayaranRepo.save(pembayaran);
-    await this.pesananService.update(pembayaran.pesanan.id, {
-      status: pembayaran.pesanan.status,
-    });
-
-    return { message: 'Notification processed' };
   }
 
   private async reduceStockForOrder(orderId: string) {

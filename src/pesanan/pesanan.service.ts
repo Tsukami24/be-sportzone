@@ -33,7 +33,7 @@ export class PesananService {
   ) {}
 
   async create(createPesananDto: CreatePesananDto): Promise<Pesanan> {
-    return await this.pesananRepo.manager.transaction(
+    const savedPesanan = await this.pesananRepo.manager.transaction(
       async (transactionalEntityManager) => {
         // Buat pesanan utama
         const pesanan = transactionalEntityManager.create(Pesanan, {
@@ -85,13 +85,16 @@ export class PesananService {
           await transactionalEntityManager.save(Pembayaran, pembayaran);
         }
 
-        if (createPesananDto.metode_pembayaran === MetodePembayaran.MIDTRANS) {
-          await this.pembayaranService.initiatePayment(savedPesanan.id);
-        }
-
         return savedPesanan;
       },
     );
+
+    // Move initiatePayment outside transaction to avoid "Pesanan tidak ditemukan"
+    if (createPesananDto.metode_pembayaran === MetodePembayaran.MIDTRANS) {
+      await this.pembayaranService.initiatePayment(savedPesanan.id);
+    }
+
+    return savedPesanan;
   }
 
   async findAll(): Promise<Pesanan[]> {
@@ -202,11 +205,11 @@ export class PesananService {
   ): void {
     // Cancellation can be done by admin or customer (if they own the order)
     if (newStatus === StatusPesanan.DIBATALKAN) {
-      if (userRole === 'admin' || isOwner) {
+      if (userRole === 'petugas' || isOwner) {
         return; // Valid
       }
       throw new Error(
-        'Hanya admin atau pemilik pesanan yang dapat membatalkan pesanan',
+        'Hanya petugas atau pemilik pesanan yang dapat membatalkan pesanan',
       );
     }
 
@@ -236,7 +239,7 @@ export class PesananService {
         return; // Valid
       }
       throw new Error(
-        'Hanya admin yang dapat mengubah status ke dikirim atau selesai',
+        'Hanya petugas yang dapat mengubah status ke dikirim atau selesai',
       );
     }
 

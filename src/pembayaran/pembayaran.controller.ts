@@ -16,20 +16,22 @@ import { RolesGuard } from 'src/auth/guards/role.guard';
 import { UpdateStatusPembayaranDto } from './dto/update-status-pembayaran.dto';
 
 @Controller('pembayaran')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class PembayaranController {
   constructor(private readonly pembayaranService: PembayaranService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async createPayment(@Body('pesananId') pesananId: string) {
     return this.pembayaranService.initiatePayment(pesananId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('initiate')
   async initiatePayment(@Body('pesananId') pesananId: string) {
     return this.pembayaranService.initiatePayment(pesananId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('cod')
   async createCodPayment(@Body('pesananId') pesananId: string) {
     return this.pembayaranService.createCodPayment(pesananId);
@@ -41,11 +43,13 @@ export class PembayaranController {
     return this.pembayaranService.handleNotification(notificationBody);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':pesananId')
   async getPaymentStatus(@Param('pesananId') pesananId: string) {
     return this.pembayaranService.getPaymentStatus(pesananId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Put(':id/status')
   async updateStatus(
