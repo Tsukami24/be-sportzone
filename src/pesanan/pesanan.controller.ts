@@ -88,7 +88,7 @@ export class PesananController {
     }
   }
 
-  @Roles('admin', 'customer')
+  @Roles('petugas', 'customer')
   @Put(':id/cancel')
   async cancelOrder(@Param('id') id: string, @Req() req): Promise<PesananDto> {
     try {
