@@ -215,7 +215,7 @@ export class PesananService {
       currentStatus === StatusPesanan.PENDING &&
       newStatus === StatusPesanan.DIPROSES
     ) {
-      if (paymentMethod === MetodePembayaran.COD && userRole === 'admin') {
+      if (paymentMethod === MetodePembayaran.COD && userRole === 'petugas') {
         return; // Valid for COD - admin only
       }
       if (paymentMethod === MetodePembayaran.MIDTRANS) {
@@ -232,7 +232,7 @@ export class PesananService {
       (newStatus === StatusPesanan.DIKIRIM ||
         newStatus === StatusPesanan.SELESAI)
     ) {
-      if (userRole === 'admin') {
+      if (userRole === 'petugas') {
         return; // Valid
       }
       throw new Error(

@@ -86,4 +86,21 @@ export class UsersService {
     if (!user) throw new NotFoundException('Petugas not found');
     return this.userRepo.remove(user);
   }
+
+  // Customers
+  async findAllCustomers() {
+    return this.userRepo.find({
+      where: { role: { name: 'customer' } },
+      relations: ['role'],
+      select: ['id', 'username', 'email'],
+    });
+  }
+
+  async removeCustomer(id: string) {
+    const user = await this.userRepo.findOne({
+      where: { id, role: { name: 'customer' } },
+    });
+    if (!user) throw new NotFoundException('Customer not found');
+    return this.userRepo.remove(user);
+  }
 }
