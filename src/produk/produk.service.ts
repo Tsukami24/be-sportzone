@@ -71,7 +71,12 @@ export class ProdukService {
 
   async findAll(): Promise<Produk[]> {
     return await this.produkRepository.find({
-      relations: ['subkategori', 'brand', 'varian'],
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }
@@ -79,7 +84,12 @@ export class ProdukService {
   async findOne(id: string): Promise<Produk> {
     const produk = await this.produkRepository.findOne({
       where: { id },
-      relations: ['subkategori', 'brand', 'varian'],
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
     });
 
     if (!produk) {
@@ -186,7 +196,12 @@ export class ProdukService {
   async findBySubkategori(subkategoriId: string): Promise<Produk[]> {
     return await this.produkRepository.find({
       where: { subkategori_id: subkategoriId },
-      relations: ['subkategori', 'brand', 'varian'],
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }
@@ -198,7 +213,12 @@ export class ProdukService {
           kategori_olahraga_id: kategoriId,
         },
       },
-      relations: ['subkategori', 'brand', 'varian'],
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }
@@ -206,7 +226,12 @@ export class ProdukService {
   async findByBrand(brandId: string): Promise<Produk[]> {
     return await this.produkRepository.find({
       where: { brand_id: brandId },
-      relations: ['subkategori', 'brand', 'varian'],
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }

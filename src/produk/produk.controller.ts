@@ -84,8 +84,13 @@ export class ProdukController {
   }
 
   @Get('kategori/:id')
-  async findByKategori(@Param('id') id: string) {
-    return this.produkService.findByKategori(id);
+  async findByKategori(@Param('id') id: string): Promise<ProdukDto[]> {
+    try {
+      const produks = await this.produkService.findByKategori(id);
+      return produks.map((produk) => new ProdukDto(produk));
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get('subkategori/:subkategoriId')

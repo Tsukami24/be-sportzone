@@ -12,6 +12,10 @@ export class ProdukDto {
   subkategori?: {
     id: string;
     nama: string;
+    kategoriOlahraga?: {
+      id: string;
+      nama: string;
+    };
   };
   brand?: {
     id: string;
@@ -45,6 +49,12 @@ export class ProdukDto {
       ? {
           id: produk.subkategori.id,
           nama: produk.subkategori.nama,
+          kategoriOlahraga: produk.subkategori.kategoriOlahraga
+            ? {
+                id: produk.subkategori.kategoriOlahraga.id,
+                nama: produk.subkategori.kategoriOlahraga.nama,
+              }
+            : undefined,
         }
       : undefined;
     this.brand = produk.brand
