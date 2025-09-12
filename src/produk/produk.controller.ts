@@ -11,6 +11,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFiles,
+  
 } from '@nestjs/common';
 import { ProdukService } from './produk.service';
 import { CreateProdukDto } from './dto/create-produk.dto';
@@ -25,6 +26,9 @@ import { ProdukVarianDto } from './dto/produk-varian.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
+
 
 @Controller('produk')
 export class ProdukController {
@@ -213,6 +217,34 @@ export class ProdukController {
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.NOT_FOUND);
     }
+  }
+
+  @Delete(':id/gambar/:gambarUrl')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('petugas')
+  async deleteGambar(
+    @Param('id') id: string,
+    @Param('gambarUrl') gambarUrl: string,
+  ): Promise<ProdukDto> {
+    // Decode URL jika ada karakter spesial
+    const decodedUrl = decodeURIComponent(gambarUrl);
+
+    // Hapus file fisik dari folder uploads
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join('./uploads', path.basename(decodedUrl));
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update database - hapus item dari array gambar berdasarkan nama file
+    const produk = await this.produkService.findOne(id);
+    produk.gambar = produk.gambar.filter(
+      (g) => path.basename(g) !== path.basename(decodedUrl),
+    );
+    await this.produkService.update(id, { gambar: produk.gambar });
+
+    return new ProdukDto(produk);
   }
 
   @Delete(':id')
