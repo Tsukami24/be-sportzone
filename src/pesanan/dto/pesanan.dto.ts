@@ -1,4 +1,5 @@
 import { Pesanan, StatusPesanan } from "../entities/pesanan.entity";
+import { PesananItemDto } from "./pesanan-item.dto";
 
 export class PesananDto {
   id: string;
@@ -10,6 +11,14 @@ export class PesananDto {
   created_at: Date;
   updated_at: Date;
 
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
+
+  pesanan_items?: PesananItemDto[];
+
   constructor(pesanan: Pesanan) {
     this.id = pesanan.id;
     this.user_id = pesanan.user_id;
@@ -19,5 +28,17 @@ export class PesananDto {
     this.alamat_pengiriman = pesanan.alamat_pengiriman;
     this.created_at = pesanan.created_at;
     this.updated_at = pesanan.updated_at;
+
+    this.user = pesanan.user
+      ? {
+          id: pesanan.user.id,
+          username: pesanan.user.username,
+          email: pesanan.user.email,
+        }
+      : undefined;
+
+       this.pesanan_items = pesanan.pesanan_items?.map(
+         (item) => new PesananItemDto(item),
+       );
   }
 }

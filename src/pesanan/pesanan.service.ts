@@ -98,7 +98,14 @@ export class PesananService {
   }
 
   async findAll(): Promise<Pesanan[]> {
-    return this.pesananRepo.find({ relations: ['user', 'pesanan_items'] });
+    return this.pesananRepo.find({
+      relations: [
+        'user',
+        'pesanan_items',
+        'pesanan_items.produk',
+        'pesanan_items.produk_varian',
+      ],
+    });
   }
 
   async findOne(id: string): Promise<Pesanan> {
@@ -229,7 +236,6 @@ export class PesananService {
       throw new Error('Transisi status tidak valid');
     }
 
-    // From DIPROSES to DIKIRIM or SELESAI - only admin
     if (
       currentStatus === StatusPesanan.DIPROSES &&
       (newStatus === StatusPesanan.DIKIRIM ||
@@ -242,8 +248,16 @@ export class PesananService {
         'Hanya petugas yang dapat mengubah status ke dikirim atau selesai',
       );
     }
+    if (
+      currentStatus === StatusPesanan.DIKIRIM &&
+      newStatus === StatusPesanan.SELESAI
+    ) {
+      if (userRole === 'petugas') {
+        return; // Valid
+      }
+      throw new Error('Hanya petugas yang dapat mengubah status ke selesai');
+    }
 
-    // Invalid transition
     throw new Error('Transisi status tidak valid');
   }
 
