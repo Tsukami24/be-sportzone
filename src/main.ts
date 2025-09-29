@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { appConfig } from './config/app.config';
+import appConfig from './config/app.config';
 import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
@@ -14,6 +14,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(appConfig.port);
+  await app.listen(appConfig().port);
 }
 bootstrap();

@@ -8,14 +8,11 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(User) public readonly userRepo: Repository<User>,
     @InjectRepository(Role) private readonly roleRepo: Repository<Role>,
   ) {}
 
   async create(data: Partial<User>) {
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
     const user = this.userRepo.create(data);
     return this.userRepo.save(user);
   }
@@ -67,10 +64,6 @@ export class UsersService {
       where: { id, role: { name: 'petugas' } },
     });
     if (!user) throw new NotFoundException('Petugas not found');
-
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
 
     if (data.username !== undefined) user.username = data.username;
     if (data.email !== undefined) user.email = data.email;

@@ -15,6 +15,7 @@ import { PesananModule } from './pesanan/pesanan.module';
 import { KeranjangModule } from './keranjang/keranjang.module';
 import { PembayaranModule } from './pembayaran/pembayaran.module';
 import { databaseConfig } from './config/database.config';
+import appConfig from './config/app.config';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { databaseConfig } from './config/database.config';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: databaseConfig,

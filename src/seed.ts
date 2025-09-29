@@ -19,15 +19,15 @@ async function seed() {
     }
   }
 
+  let roleAdmin = await rolesService.findByName('admin');
+
+  if (!roleAdmin) {
+    roleAdmin = await rolesService.create({ name: 'admin' });
+  }
+
+  const hashed = await bcrypt.hash('admin123', 10);
   const admin = await usersService.findByEmail('admin@example.com');
   if (!admin) {
-    let roleAdmin = await rolesService.findByName('admin');
-
-    if (!roleAdmin) {
-      roleAdmin = await rolesService.create({ name: 'admin' });
-    }
-
-    const hashed = await bcrypt.hash('admin123', 10);
     await usersService.create({
       username: 'Admin',
       email: 'admin@example.com',
@@ -36,7 +36,9 @@ async function seed() {
     });
     console.log('Admin account created!');
   } else {
-    console.log('Admin account already exists.');
+    // Update password in case it was double hashed
+    await usersService.userRepo.update(admin.id, { password: hashed });
+    console.log('Admin account updated!');
   }
 
   await app.close();

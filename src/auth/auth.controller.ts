@@ -2,6 +2,9 @@ import { Controller, Post, Body, Req, HttpCode, UseGuards, Get, Res } from '@nes
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { VerifyOtpDto } from "./dto/verify-otp.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
@@ -54,5 +57,23 @@ export class AuthController {
     const { token } = req.user || {};
     const frontend = process.env.FRONTEND_URL || 'http://localhost:3001';
     return res.redirect(`${frontend}/home?token=${token}`);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('verify-otp')
+  @HttpCode(200)
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyOtp(dto);
+  }
+
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }
