@@ -14,6 +14,7 @@ import { BrandModule } from './brand/brand.module';
 import { PesananModule } from './pesanan/pesanan.module';
 import { KeranjangModule } from './keranjang/keranjang.module';
 import { PembayaranModule } from './pembayaran/pembayaran.module';
+import { RatingModule } from './rating/rating.module';
 import { databaseConfig } from './config/database.config';
 import appConfig from './config/app.config';
 
@@ -42,6 +43,7 @@ import appConfig from './config/app.config';
     PesananModule,
     KeranjangModule,
     PembayaranModule,
+    RatingModule,
   ],
 })
 export class AppModule {}

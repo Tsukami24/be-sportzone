@@ -41,6 +41,7 @@ export class AuthController {
         id: user.id,
         username: user.username,
         email: user.email,
+        phone: user.phone,
         role: user.role ? { id: user.role.id, name: user.role.name } : null,
       },
       token: req.headers.authorization?.split(' ')[1] || null,
