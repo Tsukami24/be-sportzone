@@ -10,7 +10,8 @@ import { Pesanan } from 'src/pesanan/entities/pesanan.entity';
 
 export enum MetodePembayaran {
   COD = 'cod',
-  MIDTRANS = 'midtrans',
+  DANA = 'dana',
+  QRIS = 'qris',
 }
 
 export enum StatusPembayaran {
@@ -32,9 +33,9 @@ export class Pembayaran {
   @Column({
     type: 'enum',
     enum: MetodePembayaran,
-    default: MetodePembayaran.MIDTRANS,
+    nullable: true,
   })
-  metode: MetodePembayaran;
+  metode: MetodePembayaran | null;
 
   @Column({
     type: 'enum',

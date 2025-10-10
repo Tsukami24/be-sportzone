@@ -15,6 +15,7 @@ export class KategoriOlahragaController {
     private readonly kategoriOlahragaService: KategoriOlahragaService,
   ) {}
 
+  // Membuat data kategori
   @Roles('admin')
   @Post()
   async create(
@@ -30,6 +31,7 @@ export class KategoriOlahragaController {
     }
   }
 
+  // Melihat semua data kategori
   @Get()
   async findAll(): Promise<KategoriOlahragaDto[]> {
     try {
@@ -40,6 +42,7 @@ export class KategoriOlahragaController {
     }
   }
 
+  // melihat data kategori berdasarkan id
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<KategoriOlahragaDto> {
     try {
@@ -50,6 +53,7 @@ export class KategoriOlahragaController {
     }
   }
 
+  // mengupdate data kategori
   @Roles('admin')
   @Put(':id')
   async update(
@@ -67,6 +71,7 @@ export class KategoriOlahragaController {
     }
   }
 
+  // menghapus data kategori
   @Roles('admin')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {

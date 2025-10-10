@@ -36,7 +36,7 @@ async function seed() {
     });
     console.log('Admin account created!');
   } else {
-    // Update password in case it was double hashed
+
     await usersService.userRepo.update(admin.id, { password: hashed });
     console.log('Admin account updated!');
   }

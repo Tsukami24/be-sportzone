@@ -172,14 +172,12 @@ export class ProdukController {
     @Body() dto: UpdateProdukDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<ProdukDto> {
-    // ✅ kalau upload file baru → gabungkan dengan gambar yang sudah ada
+
     if (files && files.length > 0) {
-      // Ambil produk yang sudah ada untuk mendapatkan gambar existing
+
       const existingProduk = await this.produkService.findOne(id);
       const existingGambar = existingProduk.gambar || [];
 
-      // Filter out any non-URL strings that might be causing the "existing 1 and 2" issue
-      // ✅ Perbaikan: cek type dulu sebelum menggunakan startsWith
       const validExistingGambar = existingGambar.filter(
         (gambar) =>
           typeof gambar === 'string' &&
@@ -189,7 +187,6 @@ export class ProdukController {
             gambar.startsWith('/')),
       );
 
-      // Gabungkan gambar existing dengan gambar baru
       const newGambarUrls = files.map(
         (file) => `${process.env.BASE_URL}/uploads/${file.filename}`,
       );
@@ -226,10 +223,9 @@ export class ProdukController {
     @Param('id') id: string,
     @Param('gambarUrl') gambarUrl: string,
   ): Promise<ProdukDto> {
-    // Decode URL jika ada karakter spesial
+
     const decodedUrl = decodeURIComponent(gambarUrl);
 
-    // Hapus file fisik dari folder uploads
     const fs = require('fs');
     const path = require('path');
     const filePath = path.join('./uploads', path.basename(decodedUrl));
@@ -237,7 +233,6 @@ export class ProdukController {
       fs.unlinkSync(filePath);
     }
 
-    // Update database - hapus item dari array gambar berdasarkan nama file
     const produk = await this.produkService.findOne(id);
     produk.gambar = produk.gambar.filter(
       (g) => path.basename(g) !== path.basename(decodedUrl),

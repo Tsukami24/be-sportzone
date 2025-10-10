@@ -18,6 +18,7 @@ export class EmailService {
     });
   }
 
+  // Send Kode OTP to Email
   async sendOtpEmail(email: string, otp: string): Promise<void> {
     const mailOptions = {
       from: this.configService.get('email.auth.user'),

@@ -35,7 +35,6 @@ export class KeranjangService {
 		const produk = await this.produkRepo.findOne({ where: { id: dto.produk_id } });
 		if (!produk) throw new BadRequestException('Produk tidak ditemukan');
 
-		// If same produk and varian exists, increase quantity
 		const existing = (cart.items || []).find(
 			(i) => i.produk_id === dto.produk_id && (i.produk_varian_id || null) === (dto.produk_varian_id || null),
 		);

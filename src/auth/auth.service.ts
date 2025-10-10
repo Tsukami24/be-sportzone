@@ -30,6 +30,7 @@ export class AuthService {
     private readonly userRepo: Repository<User>,
   ) {}
 
+// Register Customer 
   async registerCustomer(dto: RegisterDto) {
     const roleCustomer = await this.userService.getRoleByName('customer');
     if (!roleCustomer) throw new Error('Role customer belum ada');
@@ -40,9 +41,9 @@ export class AuthService {
       password: hashed,
       role: roleCustomer,
     });
-
   }
 
+// Login All User
   async login(dto: LoginDto) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('User not found');
@@ -59,22 +60,26 @@ export class AuthService {
     return { user, token };
   }
 
+// Logout All User
   async logout(token: string) {
     await this.tokenBlacklistRepo.save({ token });
     return { message: 'Logout successful' };
   }
 
+// Blacklist Token
   async isTokenBlacklisted(token: string): Promise<boolean> {
     const found = await this.tokenBlacklistRepo.findOne({ where: { token } });
     return !!found;
   }
 
+// Profile User
   async getProfile(userId: string) {
     const user = await this.userService.findById(userId);
     if (!user) throw new UnauthorizedException('User not found');
     return user;
   }
 
+// Login With Google Customer
   async validateGoogleLogin(email: string, username: string) {
   let user = await this.userService.findByEmail(email);
 
@@ -94,26 +99,24 @@ export class AuthService {
   return { user, token };
 }
 
+// Lupa Password All User
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) throw new BadRequestException('User not found');
 
-    // Generate OTP
     const otp = randomInt(100000, 999999).toString();
 
-    // Set expiration to 10 minutes from now
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    // Save OTP
     await this.otpRepo.save({ email: dto.email, otp, expiresAt });
 
-    // Send email
     await this.emailService.sendOtpEmail(dto.email, otp);
 
     return { message: 'OTP sent to your email' };
   }
 
+// Verifikasi Kode OTP
   async verifyOtp(dto: VerifyOtpDto) {
     const otpRecord = await this.otpRepo.findOne({
       where: { email: dto.email, otp: dto.otp },
@@ -128,18 +131,17 @@ export class AuthService {
     return { message: 'OTP verified' };
   }
 
+// Reset Password All User
   async resetPassword(dto: ResetPasswordDto) {
-    // First verify OTP
+
     await this.verifyOtp({ email: dto.email, otp: dto.otp });
 
-    // Update password
     const user = await this.userService.findByEmail(dto.email);
     if (!user) throw new BadRequestException('User not found');
 
     const hashed = await bcrypt.hash(dto.newPassword, 10);
     await this.userRepo.update(user.id, { password: hashed });
 
-    // Delete OTP
     await this.otpRepo.delete({ email: dto.email });
 
     return { message: 'Password reset successful' };

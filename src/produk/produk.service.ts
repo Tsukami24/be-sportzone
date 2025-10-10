@@ -129,7 +129,6 @@ export class ProdukService {
   async update(id: string, updateProdukDto: UpdateProdukDto): Promise<Produk> {
     const produk = await this.findOne(id);
 
-    // pastikan dto.gambar dalam bentuk array
     let gambarPayload: any[] = [];
     if (updateProdukDto.gambar) {
       if (Array.isArray(updateProdukDto.gambar)) {
@@ -140,12 +139,11 @@ export class ProdukService {
     }
 
     if (gambarPayload.length > 0) {
-      // ✅ Mode Full Replace (semua string)
+
       if (gambarPayload.every((g) => typeof g === 'string')) {
         produk.gambar = gambarPayload as string[];
       }
 
-      // ✅ Mode Partial Update (ada { index, url })
       if (gambarPayload.some((g) => typeof g !== 'string')) {
         produk.gambar = produk.gambar || [];
 
@@ -157,7 +155,6 @@ export class ProdukService {
       }
     }
 
-    // Jangan timpa gambar hasil proses dengan undefined dari DTO
     const { gambar, ...rest } = updateProdukDto;
     Object.assign(produk, rest);
 

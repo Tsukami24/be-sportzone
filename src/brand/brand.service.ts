@@ -20,9 +20,10 @@ export class BrandService {
     return nama.trim();
   }
 
+  // Membuat data Brand 
   async create(dto: CreateBrandDto): Promise<Brand> {
     const nama = this.normalizeName(dto.nama);
-    // Cek unik case-insensitive
+
     const exists = await this.brandRepo.findOne({
       where: { nama: ILike(nama) },
     });
@@ -37,23 +38,26 @@ export class BrandService {
     try {
       return await this.brandRepo.save(brand);
     } catch (err: any) {
-      // Postgres duplicate key: 23505
+
       if (err?.code === '23505')
         throw new BadRequestException('Nama brand sudah digunakan');
       throw err;
     }
   }
 
+  // Melihat data semua brand
   async findAll(): Promise<Brand[]> {
     return this.brandRepo.find({ order: { created_at: 'DESC' } });
   }
 
+  // melihat data brand sesuai id
   async findOne(id: string): Promise<Brand> {
     const brand = await this.brandRepo.findOne({ where: { id } });
     if (!brand) throw new NotFoundException('Brand tidak ditemukan');
     return brand;
   }
 
+  // mengupdate data brand
   async update(id: string, dto: UpdateBrandDto): Promise<Brand> {
     const brand = await this.findOne(id);
 
@@ -63,7 +67,7 @@ export class BrandService {
         const exists = await this.brandRepo.findOne({
           where: { nama: ILike(nama) },
         });
-        // Pastikan yang ditemukan bukan dirinya sendiri
+
         if (exists && exists.id !== id) {
           throw new BadRequestException('Nama brand sudah digunakan');
         }
@@ -87,6 +91,7 @@ export class BrandService {
     }
   }
 
+  // menghapus data brand
   async remove(id: string): Promise<void> {
     const brand = await this.findOne(id);
     await this.brandRepo.remove(brand);

@@ -28,18 +28,21 @@ import { extname } from 'path';
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
+// Melihat Semua Brand
   @Get()
   async findAll(): Promise<BrandDto[]> {
     const list = await this.brandService.findAll();
     return list.map((b) => new BrandDto(b));
   }
 
+  // Melihat Produk berdasarkan brand
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<BrandDto> {
     const brand = await this.brandService.findOne(id);
     return new BrandDto(brand);
   }
 
+  // Membuat data brand
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -69,6 +72,7 @@ export class BrandController {
     }
   }
 
+  // Mengupdate data brand 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -99,6 +103,7 @@ export class BrandController {
     }
   }
 
+  // Menghapus data brand
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

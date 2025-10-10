@@ -2,16 +2,15 @@ import {
   IsUUID,
   IsNumber,
   IsString,
-  IsEnum,
   IsDateString,
   IsNotEmpty,
   IsArray,
   ValidateNested,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { StatusPesanan } from '../entities/pesanan.entity';
 import { CreatePesananItemDto } from './create-pesanan-item.dto';
-import { MetodePembayaran } from 'src/pembayaran/entities/pembayaran.entity';
 
 export class CreatePesananDto {
   @IsUUID()
@@ -26,8 +25,10 @@ export class CreatePesananDto {
   @IsNotEmpty()
   total_harga: number;
 
-  @IsEnum(StatusPesanan)
-  status: StatusPesanan;
+  @IsString()
+  @IsIn(['cod', 'midtrans'])
+  @IsNotEmpty()
+  metode_pembayaran: 'cod' | 'midtrans'; 
 
   @IsString()
   @IsNotEmpty()
@@ -37,7 +38,4 @@ export class CreatePesananDto {
   @ValidateNested({ each: true })
   @Type(() => CreatePesananItemDto)
   items: CreatePesananItemDto[];
-
-  @IsEnum(MetodePembayaran)
-  metode_pembayaran: MetodePembayaran;
 }

@@ -11,15 +11,18 @@ export class KategoriOlahragaService {
     @InjectRepository(KategoriOlahraga) private readonly kategoriRepo: Repository<KategoriOlahraga>,
   ) {}
 
+  // membuat data kategori
   async create(createKategoriOlahragaDto: CreateKategoriOlahragaDto): Promise<KategoriOlahraga> {
     const kategori = this.kategoriRepo.create(createKategoriOlahragaDto);
     return this.kategoriRepo.save(kategori);
   }
 
+  // melihat semua data kategori
   async findAll(): Promise<KategoriOlahraga[]> {
     return this.kategoriRepo.find();
   }
 
+  // melihat data kategori sesuai id
   async findOne(id: string): Promise<KategoriOlahraga> {
     const kategori = await this.kategoriRepo.findOne({ where: { id } });
     if (!kategori) {
@@ -28,6 +31,7 @@ export class KategoriOlahragaService {
     return kategori;
   }
 
+  // mengupdate data kategori
   async update(id: string, updateKategoriOlahragaDto: UpdateKategoriOlahragaDto): Promise<KategoriOlahraga> {
     await this.kategoriRepo.update(id, updateKategoriOlahragaDto);
     const updatedKategori = await this.kategoriRepo.findOne({ where: { id } });
@@ -37,6 +41,7 @@ export class KategoriOlahragaService {
     return updatedKategori;
   }
 
+  // menghapus data kategori
   async remove(id: string): Promise<void> {
     const result = await this.kategoriRepo.delete(id);
     if (result.affected === 0) {

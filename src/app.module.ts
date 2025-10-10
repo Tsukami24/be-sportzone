@@ -20,7 +20,6 @@ import appConfig from './config/app.config';
 
 @Module({
   imports: [
-    // Serve uploaded files at /uploads/<filename>
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

@@ -113,7 +113,6 @@ export class PesananController {
     }
   }
 
-  // Pesanan Item endpoints
   @Roles('admin', 'customer')
   @Post('item')
   async createItem(

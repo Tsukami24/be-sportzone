@@ -9,7 +9,10 @@ import { CreatePesananItemDto } from './dto/create-pesanan-item.dto';
 import { UpdatePesananItemDto } from './dto/update-pesanan-item.dto';
 import { StatusPesanan } from './entities/pesanan.entity';
 import { PembayaranService } from '../pembayaran/pembayaran.service';
-import { Pembayaran, MetodePembayaran } from '../pembayaran/entities/pembayaran.entity';
+import {
+  Pembayaran,
+  MetodePembayaran,
+} from '../pembayaran/entities/pembayaran.entity';
 import { ProdukVarian } from '../produk/entities/produk-varian.entity';
 import { Produk } from '../produk/entities/produk.entity';
 import { StatusPembayaran } from '../pembayaran/entities/pembayaran.entity';
@@ -32,27 +35,28 @@ export class PesananService {
     private readonly pembayaranService: PembayaranService,
   ) {}
 
+  private isMidtransPayment(method: MetodePembayaran | null): boolean {
+    return method !== null && method !== MetodePembayaran.COD;
+  }
+
   async create(createPesananDto: CreatePesananDto): Promise<Pesanan> {
     const savedPesanan = await this.pesananRepo.manager.transaction(
       async (transactionalEntityManager) => {
-        // Buat pesanan utama
         const pesanan = transactionalEntityManager.create(Pesanan, {
           tanggal_pesanan: createPesananDto.tanggal_pesanan,
           total_harga: createPesananDto.total_harga,
           alamat_pengiriman: createPesananDto.alamat_pengiriman,
           user_id: createPesananDto.user_id,
+          status: StatusPesanan.PENDING,
         });
 
-        // Simpan pesanan untuk dapatkan ID
         const savedPesanan = await transactionalEntityManager.save(
           Pesanan,
           pesanan,
         );
 
-        // Buat dan simpan item pesanan
         if (createPesananDto.items && createPesananDto.items.length > 0) {
           const pesananItems: PesananItem[] = [];
-
           for (const itemDto of createPesananDto.items) {
             const pesananItem = transactionalEntityManager.create(PesananItem, {
               pesanan_id: savedPesanan.id,
@@ -61,25 +65,27 @@ export class PesananService {
               kuantitas: itemDto.kuantitas,
               harga_satuan: itemDto.harga_satuan,
             });
-
             const savedItem = await transactionalEntityManager.save(
               PesananItem,
               pesananItem,
             );
             pesananItems.push(savedItem);
           }
-
           savedPesanan.pesanan_items = pesananItems;
         }
 
-        // ✅ Setelah pesanan tersimpan → langsung bikin pembayaran
+        let metodeDb: MetodePembayaran | null = null;
+        if (createPesananDto.metode_pembayaran === 'cod') {
+          metodeDb = MetodePembayaran.COD;
+        }
+
         let pembayaran = await transactionalEntityManager.findOne(Pembayaran, {
           where: { pesanan: { id: savedPesanan.id } },
         });
         if (!pembayaran) {
           pembayaran = transactionalEntityManager.create(Pembayaran, {
             pesanan: savedPesanan,
-            metode: createPesananDto.metode_pembayaran,
+            metode: metodeDb,
             status: StatusPembayaran.BELUM_BAYAR,
           });
           await transactionalEntityManager.save(Pembayaran, pembayaran);
@@ -89,11 +95,9 @@ export class PesananService {
       },
     );
 
-    // Move initiatePayment outside transaction to avoid "Pesanan tidak ditemukan"
-    if (createPesananDto.metode_pembayaran === MetodePembayaran.MIDTRANS) {
+    if (createPesananDto.metode_pembayaran === 'midtrans') {
       await this.pembayaranService.initiatePayment(savedPesanan.id);
     }
-
     return savedPesanan;
   }
 
@@ -149,6 +153,12 @@ export class PesananService {
     return updatedPesanan;
   }
 
+  async updateStatusOnly(id: string, status: StatusPesanan): Promise<Pesanan> {
+    const pesanan = await this.findOne(id);
+    pesanan.status = status;
+    return this.pesananRepo.save(pesanan);
+  }
+
   async updateStatus(
     id: string,
     newStatus: StatusPesanan,
@@ -156,25 +166,20 @@ export class PesananService {
     userId?: string,
   ): Promise<Pesanan> {
     const pesanan = await this.findOne(id);
-
-    // Get payment information
     const pembayaran = await this.pembayaranService.getPaymentStatus(id);
 
-    // Validate status transitions based on payment method and user role
     this.validateStatusTransition(
       pesanan.status,
       newStatus,
-      pembayaran.metode,
+      pembayaran.metode, 
       userRole,
       userId === pesanan.user_id,
     );
 
-    // Di PesananService.updateStatus()
     if (newStatus === StatusPesanan.DIPROSES) {
       console.log(`Reducing stock for order ${id}`);
       for (const item of pesanan.pesanan_items) {
         console.log(`Processing item: ${item.id}, quantity: ${item.kuantitas}`);
-        // ... existing logic
         if (item.produk_varian_id) {
           const varian = await this.varianRepo.findOne({
             where: { id: item.produk_varian_id },
@@ -188,7 +193,7 @@ export class PesananService {
                 `Stok tidak cukup untuk produk ${item.produk.nama}`,
               );
             }
-            varian.stok = varian.stok - item.kuantitas;
+            varian.stok -= item.kuantitas;
             console.log(`New stock for variant ${varian.id}: ${varian.stok}`);
             await this.varianRepo.save(varian);
             console.log(`Stock reduced successfully for variant ${varian.id}`);
@@ -198,7 +203,6 @@ export class PesananService {
       console.log(`Stock reduction completed for order ${id}`);
     }
 
-    // Update status
     pesanan.status = newStatus;
     return this.pesananRepo.save(pesanan);
   }
@@ -206,29 +210,27 @@ export class PesananService {
   private validateStatusTransition(
     currentStatus: StatusPesanan,
     newStatus: StatusPesanan,
-    paymentMethod: MetodePembayaran,
+    paymentMethod: MetodePembayaran | null, 
     userRole: string,
     isOwner: boolean,
   ): void {
-    // Cancellation can be done by admin or customer (if they own the order)
     if (newStatus === StatusPesanan.DIBATALKAN) {
-      if (userRole === 'petugas' || isOwner) {
-        return; // Valid
-      }
+      if (userRole === 'petugas' || isOwner) return;
       throw new Error(
         'Hanya petugas atau pemilik pesanan yang dapat membatalkan pesanan',
       );
     }
 
-    // From PENDING to DIPROSES
     if (
       currentStatus === StatusPesanan.PENDING &&
       newStatus === StatusPesanan.DIPROSES
     ) {
+
       if (paymentMethod === MetodePembayaran.COD && userRole === 'petugas') {
-        return; // Valid for COD - admin only
+        return;
       }
-      if (paymentMethod === MetodePembayaran.MIDTRANS) {
+
+      if (this.isMidtransPayment(paymentMethod)) {
         throw new Error(
           'Status DIPROSES untuk Midtrans hanya dapat diubah otomatis setelah pembayaran',
         );
@@ -241,20 +243,17 @@ export class PesananService {
       (newStatus === StatusPesanan.DIKIRIM ||
         newStatus === StatusPesanan.SELESAI)
     ) {
-      if (userRole === 'petugas') {
-        return; // Valid
-      }
+      if (userRole === 'petugas') return;
       throw new Error(
         'Hanya petugas yang dapat mengubah status ke dikirim atau selesai',
       );
     }
+
     if (
       currentStatus === StatusPesanan.DIKIRIM &&
       newStatus === StatusPesanan.SELESAI
     ) {
-      if (userRole === 'petugas') {
-        return; // Valid
-      }
+      if (userRole === 'petugas') return;
       throw new Error('Hanya petugas yang dapat mengubah status ke selesai');
     }
 
@@ -272,12 +271,10 @@ export class PesananService {
       userRole,
       userId,
     );
-
     const pembayaran = await this.pembayaranService.getPaymentStatus(id);
 
-    // Midtrans → refund
     if (
-      pembayaran.metode === MetodePembayaran.MIDTRANS &&
+      this.isMidtransPayment(pembayaran.metode) &&
       pembayaran.status === StatusPembayaran.SUDAH_BAYAR
     ) {
       await this.pembayaranService.refundPayment(
@@ -287,7 +284,6 @@ export class PesananService {
       );
     }
 
-    // COD → tandai gagal
     if (pembayaran.metode === MetodePembayaran.COD) {
       await this.pembayaranService.updatePembayaranStatus(
         pembayaran.id,
