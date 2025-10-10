@@ -116,6 +116,11 @@ export class PembayaranService {
         status: StatusPembayaran.BELUM_BAYAR,
       });
       await this.pembayaranRepo.save(pembayaran);
+    } else {
+      if (pembayaran.metode === null) {
+        pembayaran.metode = MetodePembayaran.COD;
+        await this.pembayaranRepo.save(pembayaran);
+      }
     }
 
     return pembayaran;
