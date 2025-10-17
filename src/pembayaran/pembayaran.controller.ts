@@ -61,4 +61,11 @@ export class PembayaranController {
       updateStatusDto.status,
     );
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get()
+  async getAllPayments() {
+    return this.pembayaranService.findAll();
+  }
 }

@@ -135,6 +135,12 @@ export class PembayaranService {
     return mapping[paymentType] || null;
   }
 
+  async findAll() {
+    return this.pembayaranRepo.find({
+      relations: ['pesanan'],
+    });
+  }
+
   async handleNotification(notificationBody: any) {
     try {
       console.log('Midtrans Notification Received:', notificationBody);
@@ -273,12 +279,12 @@ export class PembayaranService {
         pembayaran.pesanan.status = StatusPesanan.DIBATALKAN;
       }
 
-     if (pembayaran.pesanan) {
-       await this.pesananService.updateStatusOnly(
-         pembayaran.pesanan.id,
-         pembayaran.pesanan.status,
-       );
-     }
+      if (pembayaran.pesanan) {
+        await this.pesananService.updateStatusOnly(
+          pembayaran.pesanan.id,
+          pembayaran.pesanan.status,
+        );
+      }
     }
 
     return this.pembayaranRepo.save(pembayaran);
