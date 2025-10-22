@@ -181,6 +181,7 @@ export class PesananService {
       for (const item of pesanan.pesanan_items) {
         console.log(`Processing item: ${item.id}, quantity: ${item.kuantitas}`);
         if (item.produk_varian_id) {
+          // Jika ada varian, kurangi stok dari varian
           const varian = await this.varianRepo.findOne({
             where: { id: item.produk_varian_id },
           });
@@ -197,6 +198,28 @@ export class PesananService {
             console.log(`New stock for variant ${varian.id}: ${varian.stok}`);
             await this.varianRepo.save(varian);
             console.log(`Stock reduced successfully for variant ${varian.id}`);
+          }
+        } else {
+          const produk = await this.produkRepo.findOne({
+            where: { id: item.id_produk },
+          });
+          if (produk && produk.stok !== null) {
+            console.log(
+              `Product found: ${produk.id}, current stock: ${produk.stok}`,
+            );
+            if (produk.stok < item.kuantitas) {
+              throw new Error(
+                `Stok tidak cukup untuk produk ${produk.nama}`,
+              );
+            }
+            produk.stok -= item.kuantitas;
+            console.log(`New stock for product ${produk.id}: ${produk.stok}`);
+            await this.produkRepo.save(produk);
+            console.log(`Stock reduced successfully for product ${produk.id}`);
+          } else {
+            throw new Error(
+              `Stok tidak tersedia untuk produk ${item.produk.nama}`,
+            );
           }
         }
       }

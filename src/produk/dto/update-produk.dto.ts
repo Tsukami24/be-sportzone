@@ -6,6 +6,8 @@ import {
   ValidateNested,
   IsString,
   IsInt,
+  IsNumber,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -21,6 +23,11 @@ class GambarUpdateDto {
 export class UpdateProdukDto extends PartialType(
   OmitType(CreateProdukDto, ['gambar'] as const),
 ) {
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stok?: number;
+
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

@@ -28,6 +28,11 @@ export class CreateProdukDto {
   harga: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stok?: number;
+
+  @IsOptional()
   @IsArray()
   @IsUrl(
     { protocols: ['http', 'https'], require_protocol: true },

@@ -29,6 +29,9 @@ export class Produk {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   harga: number;
 
+  @Column({ type: 'int', nullable: true })
+  stok: number | null;
+
   @Column('simple-array', { nullable: true })
   gambar: string[];
 

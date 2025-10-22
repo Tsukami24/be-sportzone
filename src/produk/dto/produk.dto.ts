@@ -5,6 +5,7 @@ export class ProdukDto {
   nama: string;
   deskripsi: string;
   harga: number;
+  stok?: number;
   gambar?: string[];
   status: string;
   created_at: Date;
@@ -37,6 +38,7 @@ export class ProdukDto {
     this.nama = produk.nama;
     this.deskripsi = produk.deskripsi;
     this.harga = produk.harga;
+    this.stok = produk.stok;
     this.gambar = Array.isArray(produk.gambar)
         ? produk.gambar
         : produk.gambar

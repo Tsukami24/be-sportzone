@@ -51,6 +51,11 @@ export class ProdukService {
       throw new BadRequestException('Brand tidak ditemukan');
     }
 
+    // Validasi stok: jika stok disediakan, pastikan nilainya valid
+    if (createProdukDto.stok !== undefined && createProdukDto.stok < 0) {
+      throw new BadRequestException('Stok tidak boleh negatif');
+    }
+
     const produk = this.produkRepository.create(createProdukDto);
     return await this.produkRepository.save(produk);
   }
@@ -63,6 +68,16 @@ export class ProdukService {
     });
     if (!produk) {
       throw new BadRequestException('Produk tidak ditemukan');
+    }
+
+    // Jika produk belum memiliki varian, set stok produk menjadi null
+    const existingVarians = await this.varianRepository.find({
+      where: { produk_id: createVarianDto.produk_id },
+    });
+    if (existingVarians.length === 0) {
+      // Ini adalah varian pertama, set stok produk menjadi null
+      produk.stok = null;
+      await this.produkRepository.save(produk);
     }
 
     const varian = this.varianRepository.create(createVarianDto);
@@ -187,6 +202,22 @@ export class ProdukService {
 
   async removeVarian(id: string): Promise<void> {
     const varian = await this.findVarianById(id);
+
+    const remainingVarians = await this.varianRepository.find({
+      where: { produk_id: varian.produk_id },
+    });
+
+    if (remainingVarians.length === 1) {
+
+      const produk = await this.produkRepository.findOne({
+        where: { id: varian.produk_id },
+      });
+      if (produk) {
+        produk.stok = 0;
+        await this.produkRepository.save(produk);
+      }
+    }
+
     await this.varianRepository.softRemove(varian);
   }
 

@@ -228,16 +228,49 @@ export class PembayaranService {
           where: { id: item.produk_varian_id },
         });
 
-        if (varian) {
-          if (varian.stok < item.kuantitas) {
-            throw new HttpException(
-              `Stok tidak cukup untuk produk ${item.produk.nama}`,
-              HttpStatus.BAD_REQUEST,
-            );
-          }
-          varian.stok -= item.kuantitas;
-          await this.varianRepo.save(varian);
+        if (!varian) {
+          throw new HttpException(
+            `Varian produk tidak ditemukan untuk ${item.produk.nama}`,
+            HttpStatus.BAD_REQUEST,
+          );
         }
+
+        if (varian.stok < item.kuantitas) {
+          throw new HttpException(
+            `Stok tidak cukup untuk produk ${item.produk.nama}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        varian.stok -= item.kuantitas;
+        await this.varianRepo.save(varian);
+      } else {
+        // Jika tidak ada varian, kurangi stok dari produk induk
+        const produk = await this.produkRepo.findOne({
+          where: { id: item.id_produk },
+        });
+
+        if (!produk) {
+          throw new HttpException(
+            `Produk tidak ditemukan`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (produk.stok === null) {
+          throw new HttpException(
+            `Stok tidak tersedia untuk produk ${produk.nama} (produk memiliki varian)`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        if (produk.stok < item.kuantitas) {
+          throw new HttpException(
+            `Stok tidak cukup untuk produk ${produk.nama}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        produk.stok -= item.kuantitas;
+        await this.produkRepo.save(produk);
       }
     }
   }
