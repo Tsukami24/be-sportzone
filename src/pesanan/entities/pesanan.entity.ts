@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
 import { User } from '../../users/entities/user.entity/user.entity';
 import { PesananItem } from './pesanan-item.entity';
+import { Pembayaran } from 'src/pembayaran/entities/pembayaran.entity';
 
 export enum StatusPesanan {
   PENDING = 'pending',
@@ -46,4 +47,7 @@ export class Pesanan {
 
   @OneToMany(() => PesananItem, (pesananItem) => pesananItem.pesanan)
   pesanan_items: PesananItem[];
+
+  @OneToOne(() => Pembayaran, (pembayaran) => pembayaran.pesanan)
+  pembayaran: Pembayaran;
 }

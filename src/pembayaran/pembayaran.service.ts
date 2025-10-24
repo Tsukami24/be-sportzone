@@ -65,8 +65,12 @@ export class PembayaranService {
         secure: true,
       },
       customer_details: {
-        first_name: pesanan.user.username,
+        first_name: pesanan.user.username || 'pelanggan',
         email: pesanan.user.email,
+        phone: pesanan.user.phone || 'null',
+        billing_address: {
+          address: pesanan.alamat_pengiriman || 'Alamat belum diisi',
+        },
       },
     };
 

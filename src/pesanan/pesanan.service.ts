@@ -120,6 +120,7 @@ export class PesananService {
         'pesanan_items',
         'pesanan_items.produk',
         'pesanan_items.produk_varian',
+        'pembayaran'
       ],
     });
     if (!pesanan) {
