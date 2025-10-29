@@ -72,6 +72,9 @@ export class PembayaranService {
           address: pesanan.alamat_pengiriman || 'Alamat belum diisi',
         },
       },
+      callbacks: {
+        finish: 'http://localhost:3001/pesanan/history',
+      },
     };
 
     try {
