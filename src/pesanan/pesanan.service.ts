@@ -9,6 +9,7 @@ import { CreatePesananItemDto } from './dto/create-pesanan-item.dto';
 import { UpdatePesananItemDto } from './dto/update-pesanan-item.dto';
 import { StatusPesanan } from './entities/pesanan.entity';
 import { PembayaranService } from '../pembayaran/pembayaran.service';
+import { ProdukService } from '../produk/produk.service';
 import {
   Pembayaran,
   MetodePembayaran,
@@ -33,6 +34,7 @@ export class PesananService {
 
     @Inject(forwardRef(() => PembayaranService))
     private readonly pembayaranService: PembayaranService,
+    private readonly produkService: ProdukService,
   ) {}
 
   private isMidtransPayment(method: MetodePembayaran | null): boolean {
@@ -120,7 +122,7 @@ export class PesananService {
         'pesanan_items',
         'pesanan_items.produk',
         'pesanan_items.produk_varian',
-        'pembayaran'
+        'pembayaran',
       ],
     });
     if (!pesanan) {
@@ -172,7 +174,7 @@ export class PesananService {
     this.validateStatusTransition(
       pesanan.status,
       newStatus,
-      pembayaran.metode, 
+      pembayaran.metode,
       userRole,
       userId === pesanan.user_id,
     );
@@ -209,9 +211,7 @@ export class PesananService {
               `Product found: ${produk.id}, current stock: ${produk.stok}`,
             );
             if (produk.stok < item.kuantitas) {
-              throw new Error(
-                `Stok tidak cukup untuk produk ${produk.nama}`,
-              );
+              throw new Error(`Stok tidak cukup untuk produk ${produk.nama}`);
             }
             produk.stok -= item.kuantitas;
             console.log(`New stock for product ${produk.id}: ${produk.stok}`);
@@ -225,6 +225,11 @@ export class PesananService {
         }
       }
       console.log(`Stock reduction completed for order ${id}`);
+
+       const produkIds = [...new Set(pesanan.pesanan_items.map(item => item.id_produk))];
+      for (const produkId of produkIds) {
+        await this.produkService.updateStatusIfOutOfStock(produkId);
+      }
     }
 
     pesanan.status = newStatus;
@@ -234,7 +239,7 @@ export class PesananService {
   private validateStatusTransition(
     currentStatus: StatusPesanan,
     newStatus: StatusPesanan,
-    paymentMethod: MetodePembayaran | null, 
+    paymentMethod: MetodePembayaran | null,
     userRole: string,
     isOwner: boolean,
   ): void {
@@ -249,7 +254,6 @@ export class PesananService {
       currentStatus === StatusPesanan.PENDING &&
       newStatus === StatusPesanan.DIPROSES
     ) {
-
       if (paymentMethod === MetodePembayaran.COD && userRole === 'petugas') {
         return;
       }

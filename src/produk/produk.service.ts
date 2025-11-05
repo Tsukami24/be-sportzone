@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Produk } from './entities/produk.entity';
+import { Produk, StatusProduk } from './entities/produk.entity';
 import { ProdukVarian } from './entities/produk-varian.entity';
 import { CreateProdukDto } from './dto/create-produk.dto';
 import { UpdateProdukDto } from './dto/update-produk.dto';
@@ -262,5 +262,25 @@ export class ProdukService {
       ],
       order: { created_at: 'DESC' },
     });
+  }
+
+  async calculateTotalStock(produkId: string): Promise<number> {
+    const produk = await this.findOne(produkId);
+
+    if (produk.stok !== null) {
+      return produk.stok;
+    } else {
+      const varians = await this.findVarianByProduk(produkId);
+      return varians.reduce((total, varian) => total + varian.stok, 0);
+    }
+  }
+
+  async updateStatusIfOutOfStock(produkId: string): Promise<void> {
+    const totalStock = await this.calculateTotalStock(produkId);
+    if (totalStock === 0) {
+      const produk = await this.findOne(produkId);
+      produk.status = StatusProduk.STOK_HABIS;
+      await this.produkRepository.save(produk);
+    }
   }
 }

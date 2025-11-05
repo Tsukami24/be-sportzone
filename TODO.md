@@ -1,4 +1,4 @@
-# TODO: Implementasi Sistem Manajemen Stok Produk
+z# TODO: Implementasi Sistem Manajemen Stok Produk
 
 ## 1. Update Entity Produk
 - [ ] Tambahkan field `stok` (nullable int) ke Produk entity

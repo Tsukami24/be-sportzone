@@ -18,6 +18,7 @@ import { ProdukVarian } from 'src/produk/entities/produk-varian.entity';
 import { Produk } from 'src/produk/entities/produk.entity';
 import { PesananItem } from 'src/pesanan/entities/pesanan-item.entity';
 import * as midtransClient from 'midtrans-client';
+import { ProdukService } from 'src/produk/produk.service';
 
 @Injectable()
 export class PembayaranService {
@@ -36,6 +37,7 @@ export class PembayaranService {
 
     @Inject(forwardRef(() => PesananService))
     private readonly pesananService: PesananService,
+    private readonly produkService: ProdukService,
   ) {
     this.snapClient = new midtransClient.Snap({
       isProduction: false,
@@ -204,6 +206,17 @@ export class PembayaranService {
 
       if (shouldReduceStock) {
         await this.reduceStockForOrder(orderId);
+
+        const orderItems = await this.pesananItemRepo.find({
+          where: { pesanan_id: orderId },
+          relations: ['produk'],
+        });
+        const produkIds = [
+          ...new Set(orderItems.map((item) => item.id_produk)),
+        ];
+        for (const produkId of produkIds) {
+          await this.produkService.updateStatusIfOutOfStock(produkId);
+        }
       }
 
       await this.pembayaranRepo.save(pembayaran);
@@ -315,6 +328,15 @@ export class PembayaranService {
       if (status === StatusPembayaran.SUDAH_BAYAR) {
         pembayaran.pesanan.status = StatusPesanan.DIPROSES;
         await this.reduceStockForOrder(pembayaran.pesanan.id);
+
+        const orderItems = await this.pesananItemRepo.find({
+          where: { pesanan_id: pembayaran.pesanan.id },
+          relations: ['produk'],
+        });
+        const produkIds = [...new Set(orderItems.map(item => item.id_produk))];
+        for (const produkId of produkIds) {
+          await this.produkService.updateStatusIfOutOfStock(produkId);
+        }
       } else if (status === StatusPembayaran.GAGAL) {
         pembayaran.pesanan.status = StatusPesanan.DIBATALKAN;
       }
