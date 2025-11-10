@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity/user.entity';
 import { PesananItem } from './pesanan-item.entity';
 import { Pembayaran } from 'src/pembayaran/entities/pembayaran.entity';
@@ -8,7 +18,8 @@ export enum StatusPesanan {
   DIPROSES = 'diproses',
   DIKIRIM = 'dikirim',
   SELESAI = 'selesai',
-  DIBATALKAN = 'dibatalkan'
+  DIBATALKAN = 'dibatalkan',
+  DIKEMBALIKAN = 'dikembalikan',
 }
 
 @Entity('pesanan')

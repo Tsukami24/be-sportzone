@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from 'src/users/entities/user.entity/user.entity';
 import { Produk } from 'src/produk/entities/produk.entity';
 
@@ -17,6 +24,9 @@ export class Rating {
 
   @Column({ type: 'int' })
   rating: number;
+
+  @Column({ type: 'text', nullable: true })
+  review: string;
 
   @CreateDateColumn()
   createdAt: Date;

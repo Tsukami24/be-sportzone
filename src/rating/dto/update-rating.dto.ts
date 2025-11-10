@@ -1,4 +1,4 @@
-import { IsInt, Min, Max, IsOptional } from 'class-validator';
+import { IsInt, Min, Max, IsOptional, IsString } from 'class-validator';
 
 export class UpdateRatingDto {
   @IsOptional()
@@ -6,4 +6,8 @@ export class UpdateRatingDto {
   @Min(1)
   @Max(5)
   rating?: number;
+
+  @IsOptional()
+  @IsString()
+  review?: string;
 }

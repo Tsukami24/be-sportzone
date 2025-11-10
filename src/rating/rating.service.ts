@@ -17,6 +17,7 @@ export class RatingService {
   async create(createRatingDto: CreateRatingDto) {
     const rating = this.ratingRepo.create({
       rating: createRatingDto.rating,
+      review: createRatingDto.review,
       user: { id: createRatingDto.userId } as User,
       produk: { id: createRatingDto.produkId } as Produk,
     });
@@ -29,6 +30,10 @@ export class RatingService {
 
     if (updateRatingDto.rating !== undefined) {
       rating.rating = updateRatingDto.rating;
+    }
+
+    if (updateRatingDto.review !== undefined) {
+      rating.review = updateRatingDto.review;
     }
 
     return this.ratingRepo.save(rating);
