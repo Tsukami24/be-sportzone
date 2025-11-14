@@ -96,4 +96,17 @@ export class UsersService {
     if (!user) throw new NotFoundException('Customer not found');
     return this.userRepo.remove(user);
   }
+
+  async updateCustomerProfile(id: string, data: Partial<User>) {
+    const user = await this.userRepo.findOne({
+      where: { id, role: { name: 'customer' } },
+    });
+    if (!user) throw new NotFoundException('Customer not found');
+
+    if (data.username !== undefined) user.username = data.username;
+    if (data.email !== undefined) user.email = data.email;
+    if (data.phone !== undefined) user.phone = data.phone;
+
+    return this.userRepo.save(user);
+  }
 }
