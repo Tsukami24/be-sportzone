@@ -234,44 +234,6 @@ export class PesananService {
       }
     }
 
-    if (newStatus === StatusPesanan.DIKEMBALIKAN) {
-      console.log(`Restoring stock for returned order ${id}`);
-      for (const item of pesanan.pesanan_items) {
-        console.log(
-          `Processing return item: ${item.id}, quantity: ${item.kuantitas}`,
-        );
-        if (item.produk_varian_id) {
-          // Jika ada varian, tambahkan stok kembali ke varian
-          const varian = await this.varianRepo.findOne({
-            where: { id: item.produk_varian_id },
-          });
-          if (varian) {
-            console.log(
-              `Variant found: ${varian.id}, current stock: ${varian.stok}`,
-            );
-            varian.stok += item.kuantitas;
-            console.log(`New stock for variant ${varian.id}: ${varian.stok}`);
-            await this.varianRepo.save(varian);
-            console.log(`Stock restored successfully for variant ${varian.id}`);
-          }
-        } else {
-          const produk = await this.produkRepo.findOne({
-            where: { id: item.id_produk },
-          });
-          if (produk && produk.stok !== null) {
-            console.log(
-              `Product found: ${produk.id}, current stock: ${produk.stok}`,
-            );
-            produk.stok += item.kuantitas;
-            console.log(`New stock for product ${produk.id}: ${produk.stok}`);
-            await this.produkRepo.save(produk);
-            console.log(`Stock restored successfully for product ${produk.id}`);
-          }
-        }
-      }
-      console.log(`Stock restoration completed for returned order ${id}`);
-    }
-
     pesanan.status = newStatus;
     return this.pesananRepo.save(pesanan);
   }
@@ -287,18 +249,6 @@ export class PesananService {
       if (userRole === 'petugas' || isOwner) return;
       throw new Error(
         'Hanya petugas atau pemilik pesanan yang dapat membatalkan pesanan',
-      );
-    }
-
-    if (newStatus === StatusPesanan.DIKEMBALIKAN) {
-      if (
-        (currentStatus === StatusPesanan.DIKIRIM ||
-          currentStatus === StatusPesanan.SELESAI) &&
-        (userRole === 'petugas' || isOwner)
-      )
-        return;
-      throw new Error(
-        'Hanya petugas atau pemilik pesanan yang dapat mengembalikan pesanan dari status dikirim atau selesai',
       );
     }
 
