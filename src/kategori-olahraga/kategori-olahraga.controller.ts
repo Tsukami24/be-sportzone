@@ -9,13 +9,13 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 
 @Controller('kategori-olahraga')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class KategoriOlahragaController {
   constructor(
     private readonly kategoriOlahragaService: KategoriOlahragaService,
   ) {}
 
   // Membuat data kategori
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post()
   async create(
@@ -54,6 +54,7 @@ export class KategoriOlahragaController {
   }
 
   // mengupdate data kategori
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Put(':id')
   async update(
@@ -72,6 +73,7 @@ export class KategoriOlahragaController {
   }
 
   // menghapus data kategori
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<void> {
