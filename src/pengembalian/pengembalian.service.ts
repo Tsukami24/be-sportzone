@@ -96,7 +96,14 @@ export class PengembalianService {
 
   async findAll(): Promise<Pengembalian[]> {
     return this.pengembalianRepo.find({
-      relations: ['pesanan', 'user', 'admin', 'pesanan.pesanan_items', 'pesanan.pesanan_items.produk', 'pesanan.pesanan_items.produk_varian'],
+      relations: [
+        'pesanan',
+        'user',
+        'admin',
+        'pesanan.pesanan_items',
+        'pesanan.pesanan_items.produk',
+        'pesanan.pesanan_items.produk_varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }
@@ -104,7 +111,12 @@ export class PengembalianService {
   async findByUser(userId: string): Promise<Pengembalian[]> {
     return this.pengembalianRepo.find({
       where: { user_id: userId },
-      relations: ['pesanan', 'pesanan.pesanan_items', 'pesanan.pesanan_items.produk', 'pesanan.pesanan_items.produk_varian'],
+      relations: [
+        'pesanan',
+        'pesanan.pesanan_items',
+        'pesanan.pesanan_items.produk',
+        'pesanan.pesanan_items.produk_varian',
+      ],
       order: { created_at: 'DESC' },
     });
   }
@@ -112,7 +124,14 @@ export class PengembalianService {
   async findOne(id: string): Promise<Pengembalian> {
     const pengembalian = await this.pengembalianRepo.findOne({
       where: { id },
-      relations: ['pesanan', 'user', 'admin', 'pesanan.pesanan_items', 'pesanan.pesanan_items.produk', 'pesanan.pesanan_items.produk_varian'],
+      relations: [
+        'pesanan',
+        'user',
+        'admin',
+        'pesanan.pesanan_items',
+        'pesanan.pesanan_items.produk',
+        'pesanan.pesanan_items.produk_varian',
+      ],
     });
 
     if (!pengembalian) {
@@ -152,13 +171,19 @@ export class PengembalianService {
           pengembalian.pesanan_id,
         );
         pesanan.status = StatusPesanan.DIKEMBALIKAN;
-        await transactionalEntityManager.save(pesanan.constructor.name, pesanan);
+        await transactionalEntityManager.save(
+          pesanan.constructor.name,
+          pesanan,
+        );
 
         const pembayaran = await this.pembayaranService.getPaymentStatus(
           pengembalian.pesanan_id,
         );
         pembayaran.status = StatusPembayaran.DIKEMBALIKAN;
-        await transactionalEntityManager.save(pembayaran.constructor.name, pembayaran);
+        await transactionalEntityManager.save(
+          pembayaran.constructor.name,
+          pembayaran,
+        );
 
         if (pengembalian.alasan === AlasanPengembalian.RUSAK) {
           for (const item of pesanan.pesanan_items) {
@@ -171,9 +196,7 @@ export class PengembalianService {
             });
             await transactionalEntityManager.save(ProdukRusak, produkRusak);
           }
-        } else if (
-          pengembalian.alasan === AlasanPengembalian.SALAH_VARIAN
-        ) {
+        } else if (pengembalian.alasan === AlasanPengembalian.SALAH_VARIAN) {
           for (const item of pesanan.pesanan_items) {
             if (item.produk_varian_id) {
               const varian = await transactionalEntityManager.findOne(

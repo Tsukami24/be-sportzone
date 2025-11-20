@@ -1,5 +1,5 @@
-import { Pesanan, StatusPesanan } from "../entities/pesanan.entity";
-import { PesananItemDto } from "./pesanan-item.dto";
+import { Pesanan, StatusPesanan } from '../entities/pesanan.entity';
+import { PesananItemDto } from './pesanan-item.dto';
 
 export class PesananDto {
   id: string;
@@ -37,8 +37,8 @@ export class PesananDto {
         }
       : undefined;
 
-       this.pesanan_items = pesanan.pesanan_items?.map(
-         (item) => new PesananItemDto(item),
-       );
+    this.pesanan_items = pesanan.pesanan_items?.map(
+      (item) => new PesananItemDto(item),
+    );
   }
 }

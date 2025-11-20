@@ -5,7 +5,7 @@ export class CreatePesananItemDto {
   @IsNotEmpty()
   id_produk: string;
 
-  @IsUUID() 
+  @IsUUID()
   produk_varian_id?: string;
 
   @IsInt()

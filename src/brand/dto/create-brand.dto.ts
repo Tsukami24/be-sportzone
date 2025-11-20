@@ -11,10 +11,8 @@ export class CreateBrandDto {
 
   @IsOptional()
   @IsUrl(
-      { protocols: ['http', 'https'], require_protocol: true },
-      { each: true },
-    )
+    { protocols: ['http', 'https'], require_protocol: true },
+    { each: true },
+  )
   logo?: string;
 }
-
-

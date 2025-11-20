@@ -333,7 +333,9 @@ export class PembayaranService {
           where: { pesanan_id: pembayaran.pesanan.id },
           relations: ['produk'],
         });
-        const produkIds = [...new Set(orderItems.map(item => item.id_produk))];
+        const produkIds = [
+          ...new Set(orderItems.map((item) => item.id_produk)),
+        ];
         for (const produkId of produkIds) {
           await this.produkService.updateStatusIfOutOfStock(produkId);
         }

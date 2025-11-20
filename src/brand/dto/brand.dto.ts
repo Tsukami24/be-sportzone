@@ -17,5 +17,3 @@ export class BrandDto {
     this.updated_at = brand.updated_at;
   }
 }
-
-

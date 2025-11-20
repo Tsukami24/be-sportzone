@@ -31,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const authResult = await this.authService.validateGoogleLogin(
       emails[0].value,
       displayName,
-    ); 
+    );
 
     done(null, authResult);
   }

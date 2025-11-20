@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { SubkategoriPeralatanService } from './subkategori-peralatan.service';
 import { CreateSubkategoriPeralatanDto } from './dto/create-subkategori-peralatan.dto';
 import { UpdateSubkategoriPeralatanDto } from './dto/update-subkategori-peralatan.dto';

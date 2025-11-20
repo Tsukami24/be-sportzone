@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { Produk } from './produk.entity';
 import { StatusProduk } from './produk.entity';
 
@@ -31,7 +40,7 @@ export class ProdukVarian {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @DeleteDateColumn() 
+  @DeleteDateColumn()
   deleted_at: Date;
 
   @ManyToOne(() => Produk, { onDelete: 'CASCADE' })

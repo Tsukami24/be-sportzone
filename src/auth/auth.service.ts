@@ -1,5 +1,9 @@
 // src/auth/auth.service.ts
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TokenBlacklist } from './entities/token.entity';
@@ -30,7 +34,7 @@ export class AuthService {
     private readonly userRepo: Repository<User>,
   ) {}
 
-// Register Customer 
+  // Register Customer
   async registerCustomer(dto: RegisterDto) {
     const roleCustomer = await this.userService.getRoleByName('customer');
     if (!roleCustomer) throw new Error('Role customer belum ada');
@@ -43,7 +47,7 @@ export class AuthService {
     });
   }
 
-// Login All User
+  // Login All User
   async login(dto: LoginDto) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) throw new UnauthorizedException('User not found');
@@ -60,46 +64,46 @@ export class AuthService {
     return { user, token };
   }
 
-// Logout All User
+  // Logout All User
   async logout(token: string) {
     await this.tokenBlacklistRepo.save({ token });
     return { message: 'Logout successful' };
   }
 
-// Blacklist Token
+  // Blacklist Token
   async isTokenBlacklisted(token: string): Promise<boolean> {
     const found = await this.tokenBlacklistRepo.findOne({ where: { token } });
     return !!found;
   }
 
-// Profile User
+  // Profile User
   async getProfile(userId: string) {
     const user = await this.userService.findById(userId);
     if (!user) throw new UnauthorizedException('User not found');
     return user;
   }
 
-// Login With Google Customer
+  // Login With Google Customer
   async validateGoogleLogin(email: string, username: string) {
-  let user = await this.userService.findByEmail(email);
+    let user = await this.userService.findByEmail(email);
 
-  if (!user) {
-    const roleCustomer = await this.userService.getRoleByName('customer');
-    user = await this.userService.create({
-      username,
-      email,
-      password: '',
-      role: roleCustomer,
-    });
+    if (!user) {
+      const roleCustomer = await this.userService.getRoleByName('customer');
+      user = await this.userService.create({
+        username,
+        email,
+        password: '',
+        role: roleCustomer,
+      });
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role!.name };
+    const token = await this.jwtService.signAsync(payload);
+
+    return { user, token };
   }
 
-  const payload = { sub: user.id, email: user.email, role: user.role!.name };
-  const token = await this.jwtService.signAsync(payload);
-
-  return { user, token };
-}
-
-// Lupa Password All User
+  // Lupa Password All User
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.userService.findByEmail(dto.email);
     if (!user) throw new BadRequestException('User not found');
@@ -116,7 +120,7 @@ export class AuthService {
     return { message: 'OTP sent to your email' };
   }
 
-// Verifikasi Kode OTP
+  // Verifikasi Kode OTP
   async verifyOtp(dto: VerifyOtpDto) {
     const otpRecord = await this.otpRepo.findOne({
       where: { email: dto.email, otp: dto.otp },
@@ -131,9 +135,8 @@ export class AuthService {
     return { message: 'OTP verified' };
   }
 
-// Reset Password All User
+  // Reset Password All User
   async resetPassword(dto: ResetPasswordDto) {
-
     await this.verifyOtp({ email: dto.email, otp: dto.otp });
 
     const user = await this.userService.findByEmail(dto.email);
@@ -146,5 +149,4 @@ export class AuthService {
 
     return { message: 'Password reset successful' };
   }
-
 }

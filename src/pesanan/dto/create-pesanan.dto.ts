@@ -28,7 +28,7 @@ export class CreatePesananDto {
   @IsString()
   @IsIn(['cod', 'midtrans'])
   @IsNotEmpty()
-  metode_pembayaran: 'cod' | 'midtrans'; 
+  metode_pembayaran: 'cod' | 'midtrans';
 
   @IsString()
   @IsNotEmpty()

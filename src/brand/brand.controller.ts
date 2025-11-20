@@ -28,7 +28,7 @@ import { extname } from 'path';
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
-// Melihat Semua Brand
+  // Melihat Semua Brand
   @Get()
   async findAll(): Promise<BrandDto[]> {
     const list = await this.brandService.findAll();
@@ -72,7 +72,7 @@ export class BrandController {
     }
   }
 
-  // Mengupdate data brand 
+  // Mengupdate data brand
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -112,5 +112,3 @@ export class BrandController {
     await this.brandService.remove(id);
   }
 }
-
-

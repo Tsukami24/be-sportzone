@@ -36,7 +36,6 @@ async function seed() {
     });
     console.log('Admin account created!');
   } else {
-
     await usersService.userRepo.update(admin.id, { password: hashed });
     console.log('Admin account updated!');
   }

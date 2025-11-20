@@ -18,7 +18,3 @@ describe('ProdukController', () => {
     expect(controller).toBeDefined();
   });
 });
-
-
-
-

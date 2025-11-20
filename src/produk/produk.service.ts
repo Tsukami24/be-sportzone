@@ -13,6 +13,8 @@ import { CreateProdukVarianDto } from './dto/create-produk-varian.dto';
 import { UpdateProdukVarianDto } from './dto/update-produk-varian.dto';
 import { SubkategoriPeralatan } from '../subkategori-peralatan/entities/subkategori-peralatan.entity';
 import { Brand } from '../brand/entities/brand.entity';
+import { PesananItem } from '../pesanan/entities/pesanan-item.entity';
+import { StatusPesanan } from '../pesanan/entities/pesanan.entity';
 
 @Injectable()
 export class ProdukService {
@@ -25,6 +27,8 @@ export class ProdukService {
     private subkategoriRepository: Repository<SubkategoriPeralatan>,
     @InjectRepository(Brand)
     private brandRepository: Repository<Brand>,
+    @InjectRepository(PesananItem)
+    private pesananItemRepository: Repository<PesananItem>,
   ) {}
 
   async create(createProdukDto: CreateProdukDto): Promise<Produk> {
@@ -154,9 +158,8 @@ export class ProdukService {
     }
 
     if (gambarPayload.length > 0) {
-
       if (gambarPayload.every((g) => typeof g === 'string')) {
-        produk.gambar = gambarPayload as string[];
+        produk.gambar = gambarPayload;
       }
 
       if (gambarPayload.some((g) => typeof g !== 'string')) {
@@ -208,7 +211,6 @@ export class ProdukService {
     });
 
     if (remainingVarians.length === 1) {
-
       const produk = await this.produkRepository.findOne({
         where: { id: varian.produk_id },
       });
@@ -282,5 +284,19 @@ export class ProdukService {
       produk.status = StatusProduk.STOK_HABIS;
       await this.produkRepository.save(produk);
     }
+  }
+
+  async getTotalSoldByProduct(produkId: string): Promise<number> {
+    await this.findOne(produkId);
+
+    const result = await this.pesananItemRepository
+      .createQueryBuilder('pesanan_item')
+      .innerJoin('pesanan_item.pesanan', 'pesanan')
+      .select('SUM(pesanan_item.kuantitas)', 'total')
+      .where('pesanan_item.id_produk = :produkId', { produkId })
+      .andWhere('pesanan.status = :status', { status: StatusPesanan.SELESAI })
+      .getRawOne();
+
+    return parseInt(result?.total || '0');
   }
 }

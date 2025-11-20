@@ -20,7 +20,7 @@ export class BrandService {
     return nama.trim();
   }
 
-  // Membuat data Brand 
+  // Membuat data Brand
   async create(dto: CreateBrandDto): Promise<Brand> {
     const nama = this.normalizeName(dto.nama);
 
@@ -38,7 +38,6 @@ export class BrandService {
     try {
       return await this.brandRepo.save(brand);
     } catch (err: any) {
-
       if (err?.code === '23505')
         throw new BadRequestException('Nama brand sudah digunakan');
       throw err;
@@ -97,5 +96,3 @@ export class BrandService {
     await this.brandRepo.remove(brand);
   }
 }
-
-

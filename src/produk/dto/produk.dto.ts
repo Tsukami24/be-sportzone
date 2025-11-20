@@ -40,9 +40,9 @@ export class ProdukDto {
     this.harga = produk.harga;
     this.stok = produk.stok;
     this.gambar = Array.isArray(produk.gambar)
-        ? produk.gambar
-        : produk.gambar
-        ? produk.gambar.split(',') 
+      ? produk.gambar
+      : produk.gambar
+        ? produk.gambar.split(',')
         : [];
     this.status = produk.status;
     this.created_at = produk.created_at;

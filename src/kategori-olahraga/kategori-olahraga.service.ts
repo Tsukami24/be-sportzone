@@ -8,11 +8,14 @@ import { UpdateKategoriOlahragaDto } from './dto/update-kategori-olahraga.dto';
 @Injectable()
 export class KategoriOlahragaService {
   constructor(
-    @InjectRepository(KategoriOlahraga) private readonly kategoriRepo: Repository<KategoriOlahraga>,
+    @InjectRepository(KategoriOlahraga)
+    private readonly kategoriRepo: Repository<KategoriOlahraga>,
   ) {}
 
   // membuat data kategori
-  async create(createKategoriOlahragaDto: CreateKategoriOlahragaDto): Promise<KategoriOlahraga> {
+  async create(
+    createKategoriOlahragaDto: CreateKategoriOlahragaDto,
+  ): Promise<KategoriOlahraga> {
     const kategori = this.kategoriRepo.create(createKategoriOlahragaDto);
     return this.kategoriRepo.save(kategori);
   }
@@ -32,7 +35,10 @@ export class KategoriOlahragaService {
   }
 
   // mengupdate data kategori
-  async update(id: string, updateKategoriOlahragaDto: UpdateKategoriOlahragaDto): Promise<KategoriOlahraga> {
+  async update(
+    id: string,
+    updateKategoriOlahragaDto: UpdateKategoriOlahragaDto,
+  ): Promise<KategoriOlahraga> {
     await this.kategoriRepo.update(id, updateKategoriOlahragaDto);
     const updatedKategori = await this.kategoriRepo.findOne({ where: { id } });
     if (!updatedKategori) {

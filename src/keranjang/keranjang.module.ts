@@ -8,9 +8,12 @@ import { AuthModule } from '../auth/auth.module';
 import { Produk } from '../produk/entities/produk.entity';
 
 @Module({
-	imports: [TypeOrmModule.forFeature([Keranjang, KeranjangItem, Produk]), AuthModule],
-	controllers: [KeranjangController],
-	providers: [KeranjangService],
-	exports: [KeranjangService]
+  imports: [
+    TypeOrmModule.forFeature([Keranjang, KeranjangItem, Produk]),
+    AuthModule,
+  ],
+  controllers: [KeranjangController],
+  providers: [KeranjangService],
+  exports: [KeranjangService],
 })
 export class KeranjangModule {}

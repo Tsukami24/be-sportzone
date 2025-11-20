@@ -11,7 +11,6 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFiles,
-  
 } from '@nestjs/common';
 import { ProdukService } from './produk.service';
 import { CreateProdukDto } from './dto/create-produk.dto';
@@ -28,7 +27,6 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
 import * as path from 'path';
-
 
 @Controller('produk')
 export class ProdukController {
@@ -129,6 +127,21 @@ export class ProdukController {
     }
   }
 
+  @Get(':id/sold-count')
+  async getTotalSoldByProduct(
+    @Param('id') id: string,
+  ): Promise<{ productId: string; totalSold: number }> {
+    try {
+      const totalSold = await this.produkService.getTotalSoldByProduct(id);
+      return {
+        productId: id,
+        totalSold: totalSold,
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+
   @Get(':produkId/varian')
   async findVarianByProduk(
     @Param('produkId') produkId: string,
@@ -172,9 +185,7 @@ export class ProdukController {
     @Body() dto: UpdateProdukDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<ProdukDto> {
-
     if (files && files.length > 0) {
-
       const existingProduk = await this.produkService.findOne(id);
       const existingGambar = existingProduk.gambar || [];
 
@@ -223,7 +234,6 @@ export class ProdukController {
     @Param('id') id: string,
     @Param('gambarUrl') gambarUrl: string,
   ): Promise<ProdukDto> {
-
     const decodedUrl = decodeURIComponent(gambarUrl);
 
     const fs = require('fs');

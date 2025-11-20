@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { KategoriOlahragaService } from './kategori-olahraga.service';
 import { CreateKategoriOlahragaDto } from './dto/create-kategori-olahraga.dto';
 import { UpdateKategoriOlahragaDto } from './dto/update-kategori-olahraga.dto';

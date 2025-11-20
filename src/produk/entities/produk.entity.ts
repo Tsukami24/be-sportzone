@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { SubkategoriPeralatan } from '../../subkategori-peralatan/entities/subkategori-peralatan.entity';
 import { Brand } from '../../brand/entities/brand.entity';
 import { ProdukVarian } from './produk-varian.entity';
@@ -6,7 +16,7 @@ import { ProdukVarian } from './produk-varian.entity';
 export enum StatusProduk {
   AKTIF = 'aktif',
   NONAKTIF = 'nonaktif',
-  STOK_HABIS = 'stok habis'
+  STOK_HABIS = 'stok habis',
 }
 
 @Entity('produk')
@@ -62,11 +72,3 @@ export class Produk {
   @OneToMany(() => ProdukVarian, (varian) => varian.produk)
   varian: ProdukVarian[];
 }
-
-
-
-
-
-
-
-

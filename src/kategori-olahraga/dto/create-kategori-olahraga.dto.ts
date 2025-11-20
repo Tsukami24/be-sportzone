@@ -1,8 +1,6 @@
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional } from 'class-validator';
 
 export class CreateKategoriOlahragaDto {
-    @IsString()
-    nama: string;
-
-    
+  @IsString()
+  nama: string;
 }

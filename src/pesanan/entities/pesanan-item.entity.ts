@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Pesanan } from './pesanan.entity';
 import { Produk } from '../../produk/entities/produk.entity';
 import { ProdukVarian } from '../../produk/entities/produk-varian.entity';

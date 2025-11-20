@@ -32,5 +32,3 @@ export class Brand {
   })
   updated_at: Date;
 }
-
-

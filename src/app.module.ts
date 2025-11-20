@@ -31,7 +31,7 @@ import appConfig from './config/app.config';
       useFactory: databaseConfig,
       inject: [ConfigService],
     }),
-    
+
     AuthModule,
     UsersModule,
     RolesModule,

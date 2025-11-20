@@ -1,10 +1,19 @@
-import { Controller, Post, Body, Req, HttpCode, UseGuards, Get, Res } from '@nestjs/common';
-import { AuthService } from "./auth.service";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-import { ForgotPasswordDto } from "./dto/forgot-password.dto";
-import { VerifyOtpDto } from "./dto/verify-otp.dto";
-import { ResetPasswordDto } from "./dto/reset-password.dto";
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  HttpCode,
+  UseGuards,
+  Get,
+  Res,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
