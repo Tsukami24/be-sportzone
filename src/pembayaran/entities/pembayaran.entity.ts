@@ -44,9 +44,6 @@ export class Pembayaran {
   })
   status: StatusPembayaran;
 
-  @Column({ type: 'text', nullable: true })
-  bukti_pembayaran: string;
-
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 }
