@@ -34,6 +34,14 @@ export class CreatePesananDto {
   @IsNotEmpty()
   alamat_pengiriman: string;
 
+  @IsString()
+  @IsNotEmpty()
+  kota: string;
+
+  @IsString()
+  @IsNotEmpty()
+  provinsi: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePesananItemDto)

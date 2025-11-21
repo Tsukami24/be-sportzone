@@ -46,6 +46,18 @@ export class Pesanan {
   @Column({ type: 'text' })
   alamat_pengiriman: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  kota: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  provinsi: string;
+
+  @Column({ type: 'int', nullable: true })
+  eta_min: number;
+
+  @Column({ type: 'int', nullable: true })
+  eta_max: number;
+
   @CreateDateColumn()
   created_at: Date;
 

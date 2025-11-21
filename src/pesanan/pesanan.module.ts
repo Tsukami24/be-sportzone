@@ -11,6 +11,7 @@ import { PembayaranModule } from 'src/pembayaran/pembayaran.module';
 import { Produk } from 'src/produk/entities/produk.entity';
 import { ProdukVarian } from 'src/produk/entities/produk-varian.entity';
 import { Pembayaran } from 'src/pembayaran/entities/pembayaran.entity';
+import { ShippingModule } from 'src/shipping/shipping.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Pembayaran } from 'src/pembayaran/entities/pembayaran.entity';
     UsersModule,
     ProdukModule,
     forwardRef(() => PembayaranModule),
+    ShippingModule,
   ],
   controllers: [PesananController],
   providers: [PesananService],

@@ -16,6 +16,7 @@ import { KeranjangModule } from './keranjang/keranjang.module';
 import { PembayaranModule } from './pembayaran/pembayaran.module';
 import { RatingModule } from './rating/rating.module';
 import { PengembalianModule } from './pengembalian/pengembalian.module';
+import { ShippingModule } from './shipping/shipping.module';
 import { databaseConfig } from './config/database.config';
 import appConfig from './config/app.config';
 
@@ -45,6 +46,7 @@ import appConfig from './config/app.config';
     PembayaranModule,
     RatingModule,
     PengembalianModule,
+    ShippingModule,
   ],
 })
 export class AppModule {}

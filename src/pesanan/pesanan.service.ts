@@ -17,6 +17,7 @@ import {
 import { ProdukVarian } from '../produk/entities/produk-varian.entity';
 import { Produk } from '../produk/entities/produk.entity';
 import { StatusPembayaran } from '../pembayaran/entities/pembayaran.entity';
+import { ShippingService } from '../shipping/shipping.service';
 
 @Injectable()
 export class PesananService {
@@ -35,6 +36,7 @@ export class PesananService {
     @Inject(forwardRef(() => PembayaranService))
     private readonly pembayaranService: PembayaranService,
     private readonly produkService: ProdukService,
+    private readonly shippingService: ShippingService,
   ) {}
 
   private isMidtransPayment(method: MetodePembayaran | null): boolean {
@@ -42,12 +44,21 @@ export class PesananService {
   }
 
   async create(createPesananDto: CreatePesananDto): Promise<Pesanan> {
+    const eta = this.shippingService.calculateEta({
+      kota: createPesananDto.kota,
+      provinsi: createPesananDto.provinsi,
+    });
+
     const savedPesanan = await this.pesananRepo.manager.transaction(
       async (transactionalEntityManager) => {
         const pesanan = transactionalEntityManager.create(Pesanan, {
           tanggal_pesanan: createPesananDto.tanggal_pesanan,
           total_harga: createPesananDto.total_harga,
           alamat_pengiriman: createPesananDto.alamat_pengiriman,
+          kota: createPesananDto.kota,
+          provinsi: createPesananDto.provinsi,
+          eta_min: eta.min,
+          eta_max: eta.max,
           user_id: createPesananDto.user_id,
           status: StatusPesanan.PENDING,
         });
