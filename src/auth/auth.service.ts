@@ -113,7 +113,10 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    await this.otpRepo.save({ email: dto.email, otp, expiresAt });
+    await this.otpRepo.delete({ email: dto.email });
+
+    const otpEntity = this.otpRepo.create({ email: dto.email, otp, expiresAt });
+    await this.otpRepo.save(otpEntity);
 
     await this.emailService.sendOtpEmail(dto.email, otp);
 

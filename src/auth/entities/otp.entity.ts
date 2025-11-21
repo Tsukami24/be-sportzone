@@ -11,6 +11,6 @@ export class Otp {
   @Column()
   otp: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ name: 'expires_at', type: 'timestamp' })
   expiresAt: Date;
 }
