@@ -8,6 +8,10 @@ export class PesananDto {
   total_harga: number;
   status: StatusPesanan;
   alamat_pengiriman: string;
+  kota: string;
+  provinsi: string;
+  eta_min: number;
+  eta_max: number;
   created_at: Date;
   updated_at: Date;
 
@@ -26,6 +30,10 @@ export class PesananDto {
     this.total_harga = pesanan.total_harga;
     this.status = pesanan.status;
     this.alamat_pengiriman = pesanan.alamat_pengiriman;
+    this.kota = pesanan.kota;
+    this.provinsi = pesanan.provinsi;
+    this.eta_min = pesanan.eta_min;
+    this.eta_max = pesanan.eta_max;
     this.created_at = pesanan.created_at;
     this.updated_at = pesanan.updated_at;
 
