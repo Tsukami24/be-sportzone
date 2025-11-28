@@ -63,7 +63,7 @@ export class PembayaranController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'petugas')
   @Get()
   async getAllPayments() {
     return this.pembayaranService.findAll();
