@@ -10,7 +10,9 @@ import {
   Req,
   HttpStatus,
   UseGuards,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { PesananService } from './pesanan.service';
 import { CreatePesananDto } from './dto/create-pesanan.dto';
 import { PesananDto } from './dto/pesanan.dto';
@@ -52,6 +54,28 @@ export class PesananController {
     try {
       const pesanans = await this.pesananService.findAll();
       return pesanans.map((pesanan) => new PesananDto(pesanan));
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Roles('admin')
+  @Get('export/excel')
+  async exportToExcel(@Res() res: Response) {
+    try {
+      const buffer = await this.pesananService.exportToExcel();
+      const filename = `data-pesanan-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+
+      return res.send(buffer);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -15,6 +15,7 @@ import { SubkategoriPeralatan } from '../subkategori-peralatan/entities/subkateg
 import { Brand } from '../brand/entities/brand.entity';
 import { PesananItem } from '../pesanan/entities/pesanan-item.entity';
 import { StatusPesanan } from '../pesanan/entities/pesanan.entity';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class ProdukService {
@@ -298,5 +299,58 @@ export class ProdukService {
       .getRawOne();
 
     return parseInt(result?.total || '0');
+  }
+
+  async exportToExcel(): Promise<Buffer> {
+    const produks = await this.produkRepository.find({
+      relations: [
+        'subkategori',
+        'subkategori.kategoriOlahraga',
+        'brand',
+        'varian',
+      ],
+      order: { created_at: 'DESC' },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Data Produk');
+
+    worksheet.columns = [
+      { header: 'Nama Produk', key: 'nama', width: 30 },
+      { header: 'Kategori', key: 'kategori', width: 20 },
+      { header: 'Brand', key: 'brand', width: 20 },
+      { header: 'Harga', key: 'harga', width: 15 },
+      { header: 'Stok', key: 'stok', width: 10 },
+      { header: 'Nilai Stock', key: 'nilai_stock', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Total Terjual', key: 'total_terjual', width: 15 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' },
+    };
+
+    for (const produk of produks) {
+      const totalSold = await this.getTotalSoldByProduct(produk.id);
+      const totalStock = await this.calculateTotalStock(produk.id);
+      const nilaiStock = totalStock * Number(produk.harga);
+
+      worksheet.addRow({
+        nama: produk.nama,
+        kategori: produk.subkategori?.kategoriOlahraga?.nama || '-',
+        brand: produk.brand?.nama || '-',
+        harga: Number(produk.harga),
+        stok: totalStock,
+        nilai_stock: nilaiStock,
+        status: produk.status,
+        total_terjual: totalSold,
+      });
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 }

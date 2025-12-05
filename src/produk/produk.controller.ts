@@ -11,7 +11,9 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFiles,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ProdukService } from './produk.service';
 import { CreateProdukDto } from './dto/create-produk.dto';
 import { UpdateProdukDto } from './dto/update-produk.dto';
@@ -80,6 +82,29 @@ export class ProdukController {
     try {
       const produks = await this.produkService.findAll();
       return produks.map((produk) => new ProdukDto(produk));
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Get('export/excel')
+  async exportToExcel(@Res() res: Response) {
+    try {
+      const buffer = await this.produkService.exportToExcel();
+      const filename = `data-produk-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+
+      return res.send(buffer);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

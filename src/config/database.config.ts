@@ -16,7 +16,7 @@ export const databaseConfig = (
 
   retryAttempts: 3,
   retryDelay: 3000,
-  
+
   extra: {
     max: 10,
     idleTimeoutMillis: 30000,

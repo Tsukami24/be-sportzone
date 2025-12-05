@@ -18,6 +18,7 @@ import { ProdukVarian } from '../produk/entities/produk-varian.entity';
 import { Produk } from '../produk/entities/produk.entity';
 import { StatusPembayaran } from '../pembayaran/entities/pembayaran.entity';
 import { ShippingService } from '../shipping/shipping.service';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class PesananService {
@@ -385,5 +386,55 @@ export class PesananService {
     if (result.affected === 0) {
       throw new Error('Item pesanan tidak ditemukan');
     }
+  }
+
+  async exportToExcel(): Promise<Buffer> {
+    const pesanans = await this.pesananRepo.find({
+      relations: ['user', 'pesanan_items', 'pembayaran'],
+      order: { tanggal_pesanan: 'DESC' },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Data Pesanan');
+
+    worksheet.columns = [
+      { header: 'ID Pesanan', key: 'id', width: 38 },
+      { header: 'Username', key: 'username', width: 20 },
+      { header: 'Email', key: 'email', width: 30 },
+      { header: 'Tanggal', key: 'tanggal', width: 20 },
+      { header: 'Kota/Provinsi', key: 'lokasi', width: 30 },
+      { header: 'Total Harga', key: 'total_harga', width: 15 },
+      { header: 'Status Pesanan', key: 'status_pesanan', width: 15 },
+      { header: 'Jumlah Item', key: 'jumlah_item', width: 15 },
+      { header: 'Metode Pembayaran', key: 'metode_pembayaran', width: 20 },
+      { header: 'Status Pembayaran', key: 'status_pembayaran', width: 20 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' },
+    };
+
+    pesanans.forEach((pesanan) => {
+      worksheet.addRow({
+        id: pesanan.id,
+        username: pesanan.user?.username || '-',
+        email: pesanan.user?.email || '-',
+        tanggal: pesanan.tanggal_pesanan
+          ? new Date(pesanan.tanggal_pesanan).toLocaleString('id-ID')
+          : '-',
+        lokasi: `${pesanan.kota || '-'}/${pesanan.provinsi || '-'}`,
+        total_harga: Number(pesanan.total_harga),
+        status_pesanan: pesanan.status,
+        jumlah_item: pesanan.pesanan_items?.length || 0,
+        metode_pembayaran: pesanan.pembayaran?.metode || '-',
+        status_pembayaran: pesanan.pembayaran?.status || '-',
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 }
