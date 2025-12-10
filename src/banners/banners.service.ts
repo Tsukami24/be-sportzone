@@ -38,7 +38,6 @@ export class BannersService {
       end_date: dto.end_date ? new Date(dto.end_date) : null,
     });
 
-
     if (
       banner.start_date &&
       banner.end_date &&
@@ -55,10 +54,18 @@ export class BannersService {
   }
 
   async findActive(): Promise<Banner[]> {
-    await this.checkExpiredBanners();
-    return this.bannerRepo.find({
+    const now = new Date();
+
+    const banners = await this.bannerRepo.find({
       where: { is_active: true },
       order: { created_at: 'DESC' },
+    });
+
+    return banners.filter((banner) => {
+      const notStarted = banner.start_date && new Date(banner.start_date) > now;
+      const expired = banner.end_date && new Date(banner.end_date) < now;
+
+      return !notStarted && !expired;
     });
   }
 
@@ -80,7 +87,7 @@ export class BannersService {
     }
     if (dto.image_url !== undefined) {
       banner.image_url = dto.image_url?.trim?.() || null;
-    } 
+    }
     if (dto.link_type !== undefined) {
       banner.link_type = dto.link_type;
     }
