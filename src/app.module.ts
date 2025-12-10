@@ -17,6 +17,7 @@ import { PembayaranModule } from './pembayaran/pembayaran.module';
 import { RatingModule } from './rating/rating.module';
 import { PengembalianModule } from './pengembalian/pengembalian.module';
 import { ShippingModule } from './shipping/shipping.module';
+import { BannersModule } from './banners/banners.module';
 import { databaseConfig } from './config/database.config';
 import appConfig from './config/app.config';
 
@@ -47,6 +48,7 @@ import appConfig from './config/app.config';
     RatingModule,
     PengembalianModule,
     ShippingModule,
+    BannersModule,
   ],
 })
 export class AppModule {}
