@@ -31,8 +31,6 @@ export class ProdukVarian {
   @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
   harga: number;
 
-  @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
-  sku: string;
 
   @CreateDateColumn()
   created_at: Date;

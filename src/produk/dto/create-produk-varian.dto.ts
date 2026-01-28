@@ -21,7 +21,4 @@ export class CreateProdukVarianDto {
   @Min(0)
   harga?: number;
 
-  @IsOptional()
-  @IsString()
-  sku?: string;
 }

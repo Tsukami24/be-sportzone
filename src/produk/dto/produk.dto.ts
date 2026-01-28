@@ -28,7 +28,6 @@ export class ProdukDto {
     warna?: string;
     stok: number;
     harga?: number;
-    sku?: string;
   }[];
 
   constructor(produk: any) {
@@ -72,7 +71,6 @@ export class ProdukDto {
           warna: v.warna,
           stok: v.stok,
           harga: v.harga,
-          sku: v.sku,
         }))
       : undefined;
   }

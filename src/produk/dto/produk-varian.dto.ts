@@ -5,7 +5,6 @@ export class ProdukVarianDto {
   warna?: string;
   stok: number;
   harga?: number;
-  sku?: string;
   created_at: Date;
   updated_at: Date;
 
@@ -16,7 +15,6 @@ export class ProdukVarianDto {
     this.warna = varian.warna;
     this.stok = varian.stok;
     this.harga = varian.harga;
-    this.sku = varian.sku;
     this.created_at = varian.created_at;
     this.updated_at = varian.updated_at;
   }

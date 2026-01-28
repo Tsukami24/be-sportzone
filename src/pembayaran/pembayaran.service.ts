@@ -316,39 +316,58 @@ export class PembayaranService {
       where: { id: pembayaranId },
       relations: ['pesanan'],
     });
+
     if (!pembayaran) {
       throw new HttpException(
         'Pembayaran tidak ditemukan',
         HttpStatus.NOT_FOUND,
       );
     }
+
     pembayaran.status = status;
 
     if (pembayaran.metode === MetodePembayaran.COD) {
-      if (status === StatusPembayaran.SUDAH_BAYAR) {
+      const currentOrderStatus = pembayaran.pesanan.status;
+
+      const finalStatuses = [
+        StatusPesanan.SELESAI,
+        StatusPesanan.DIBATALKAN,
+        StatusPesanan.DIKEMBALIKAN,
+      ];
+
+      if (
+        status === StatusPembayaran.SUDAH_BAYAR &&
+        !finalStatuses.includes(currentOrderStatus)
+      ) {
         pembayaran.pesanan.status = StatusPesanan.DIPROSES;
+
         await this.reduceStockForOrder(pembayaran.pesanan.id);
 
         const orderItems = await this.pesananItemRepo.find({
           where: { pesanan_id: pembayaran.pesanan.id },
           relations: ['produk'],
         });
+
         const produkIds = [
           ...new Set(orderItems.map((item) => item.id_produk)),
         ];
+
         for (const produkId of produkIds) {
           await this.produkService.updateStatusIfOutOfStock(produkId);
         }
-      } else if (status === StatusPembayaran.GAGAL) {
+      }
+
+      if (
+        status === StatusPembayaran.GAGAL &&
+        !finalStatuses.includes(currentOrderStatus)
+      ) {
         pembayaran.pesanan.status = StatusPesanan.DIBATALKAN;
       }
 
-      if (pembayaran.pesanan) {
-        await this.pesananService.updateStatusOnly(
-          pembayaran.pesanan.id,
-          pembayaran.pesanan.status,
-        );
-      }
+      await this.pesananService.updateStatusOnly(
+        pembayaran.pesanan.id,
+        pembayaran.pesanan.status,
+      );
     }
 
     return this.pembayaranRepo.save(pembayaran);
