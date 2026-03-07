@@ -24,6 +24,10 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/role.guard';
 import { UpdateStatusPesananDto } from './dto/update-status-pesanan.dto';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Internal server error';
+}
+
 @Controller('pesanan')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PesananController {
@@ -44,7 +48,7 @@ export class PesananController {
       const pesanan = await this.pesananService.create(createPesananDto);
       return new PesananDto(pesanan);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(getErrorMessage(error), HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -55,7 +59,10 @@ export class PesananController {
       const pesanans = await this.pesananService.findAll();
       return pesanans.map((pesanan) => new PesananDto(pesanan));
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        getErrorMessage(error),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -77,7 +84,10 @@ export class PesananController {
 
       return res.send(buffer);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        getErrorMessage(error),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -88,7 +98,7 @@ export class PesananController {
       const pesanan = await this.pesananService.findOne(id);
       return new PesananDto(pesanan);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(getErrorMessage(error), HttpStatus.NOT_FOUND);
     }
   }
 
@@ -108,7 +118,7 @@ export class PesananController {
       );
       return new PesananDto(pesanan);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(getErrorMessage(error), HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -123,7 +133,21 @@ export class PesananController {
       );
       return new PesananDto(pesanan);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(getErrorMessage(error), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Roles('customer')
+  @Put(':id/finish')
+  async finishOrder(@Param('id') id: string, @Req() req): Promise<PesananDto> {
+    try {
+      const pesanan = await this.pesananService.finishOrderByCustomer(
+        id,
+        req.user.sub || req.user.userId,
+      );
+      return new PesananDto(pesanan);
+    } catch (error) {
+      throw new HttpException(getErrorMessage(error), HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -133,7 +157,7 @@ export class PesananController {
     try {
       await this.pesananService.remove(id);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(getErrorMessage(error), HttpStatus.NOT_FOUND);
     }
   }
 
@@ -147,7 +171,7 @@ export class PesananController {
         await this.pesananService.createItem(createPesananItemDto);
       return new PesananItemDto(pesananItem);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(getErrorMessage(error), HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -158,7 +182,7 @@ export class PesananController {
       const pesananItems = await this.pesananService.findAllItems();
       return pesananItems.map((item) => new PesananItemDto(item));
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(getErrorMessage(error), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -169,7 +193,7 @@ export class PesananController {
       const pesananItem = await this.pesananService.findOneItem(id);
       return new PesananItemDto(pesananItem);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(getErrorMessage(error), HttpStatus.NOT_FOUND);
     }
   }
 
@@ -186,7 +210,7 @@ export class PesananController {
       );
       return new PesananItemDto(pesananItem);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(getErrorMessage(error), HttpStatus.NOT_FOUND);
     }
   }
 
@@ -196,7 +220,7 @@ export class PesananController {
     try {
       await this.pesananService.removeItem(id);
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+      throw new HttpException(getErrorMessage(error), HttpStatus.NOT_FOUND);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Inject, forwardRef, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { Pesanan } from './entities/pesanan.entity';
 import { PesananItem } from './entities/pesanan-item.entity';
 import { CreatePesananDto } from './dto/create-pesanan.dto';
@@ -19,6 +19,7 @@ import { Produk } from '../produk/entities/produk.entity';
 import { StatusPembayaran } from '../pembayaran/entities/pembayaran.entity';
 import { ShippingService } from '../shipping/shipping.service';
 import * as ExcelJS from 'exceljs';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class PesananService {
@@ -295,8 +296,11 @@ export class PesananService {
       currentStatus === StatusPesanan.DIKIRIM &&
       newStatus === StatusPesanan.SELESAI
     ) {
-      if (userRole === 'petugas') return;
-      throw new Error('Hanya petugas yang dapat mengubah status ke selesai');
+      // Petugas atau customer (pemilik pesanan) dapat menyelesaikan pesanan
+      if (userRole === 'petugas' || isOwner) return;
+      throw new Error(
+        'Hanya petugas atau customer (pemilik pesanan) yang dapat mengubah status ke selesai',
+      );
     }
 
     throw new Error('Transisi status tidak valid');
@@ -386,6 +390,61 @@ export class PesananService {
     if (result.affected === 0) {
       throw new Error('Item pesanan tidak ditemukan');
     }
+  }
+
+  /**
+   * Cron job: Auto-complete orders older than 14 days
+   * Runs every day at midnight (00:00)
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async autoCompleteOldOrders(): Promise<void> {
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const oldOrders = await this.pesananRepo.find({
+      where: {
+        status: StatusPesanan.DIKIRIM,
+        tanggal_pesanan: LessThan(fourteenDaysAgo),
+      },
+    });
+
+    for (const pesanan of oldOrders) {
+      try {
+        pesanan.status = StatusPesanan.SELESAI;
+        await this.pesananRepo.save(pesanan);
+        console.log(
+          `Auto-completed order ${pesanan.id} (older than 14 days)`,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to auto-complete order ${pesanan.id}:`,
+          error.message,
+        );
+      }
+    }
+  }
+
+  /**
+   * Allow customer to mark their order as completed
+   */
+  async finishOrderByCustomer(
+    id: string,
+    userId: string,
+  ): Promise<Pesanan> {
+    const pesanan = await this.findOne(id);
+
+    if (pesanan.user_id !== userId) {
+      throw new Error('Anda tidak memiliki izin untuk menyelesaikan pesanan ini');
+    }
+
+    if (pesanan.status !== StatusPesanan.DIKIRIM) {
+      throw new Error(
+        'Pesanan hanya dapat diselesaikan jika statusnya sudah dikirim',
+      );
+    }
+
+    pesanan.status = StatusPesanan.SELESAI;
+    return this.pesananRepo.save(pesanan);
   }
 
   async exportToExcel(): Promise<Buffer> {
